@@ -5,3 +5,4 @@
 - Added the Button UI component doc
 - Add the profiles schema docs
 - Add proper SEO
+- Add managers doc

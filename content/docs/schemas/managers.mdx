@@ -1,0 +1,327 @@
+---
+title: Managers Schema
+description: The managers database schema implementing RBAC for manager accounts.
+---
+
+## Overview
+
+The managers schema implements Role-Based Access Control (RBAC) for administrative and managerial accounts. It provides a hierarchical role system with granular permissions, linked 1:1 with `auth.users`. The system includes custom JWT claims for authorization and RLS policies for secure data access.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  AUTH_USERS ||--|| MANAGERS : "1:1 (id FK)"
+  MANAGERS ||--o{ MANAGER_USER_ROLES : "1:m"
+  MANAGER_ROLES ||--o{ MANAGER_ROLE_PERMISSIONS : "1:m"
+
+  AUTH_USERS {
+    uuid id PK
+    timestamptz created_at
+    text email
+  }
+
+  MANAGERS {
+    uuid id PK
+    text full_name
+    text email
+    text department
+    text bio
+    text avatar_url
+    text phone
+    manager_status status
+    timestamptz last_login_at
+    uuid created_by
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  MANAGER_USER_ROLES {
+    bigint id PK
+    uuid user_id FK
+    manager_role role
+    uuid assigned_by
+    timestamptz assigned_at
+  }
+
+  MANAGER_ROLES {
+    manager_role value PK
+  }
+
+  MANAGER_ROLE_PERMISSIONS {
+    bigint id PK
+    manager_role role
+    manager_permission permission
+  }
+'
+/>
+
+## Enum Types
+
+### `manager_role`
+
+Hierarchy of manager roles with different permission levels:
+
+| Value | Description |
+|-------|-------------|
+| `super_admin` | Full system access with all permissions |
+| `content_manager` | Manages content moderation, approval, and featuring |
+| `support_manager` | Handles support tickets and user issues |
+| `finance_manager` | Manages transactions, refunds, and payouts |
+| `developer_manager` | Manages developer accounts and permissions |
+
+```sql
+CREATE TYPE public.manager_role AS ENUM (
+  'super_admin',
+  'content_manager',
+  'support_manager',
+  'finance_manager',
+  'developer_manager'
+);
+```
+
+### `manager_permission`
+
+Granular permissions for fine-grained access control:
+
+| Value | Description |
+|-------|-------------|
+| `managers.create` | Create new manager accounts |
+| `managers.view` | View manager accounts |
+| `managers.update` | Update manager accounts |
+| `managers.delete` | Delete manager accounts |
+| `content.moderate` | Moderate user-generated content |
+| `content.approve` | Approve content submissions |
+| `content.feature` | Feature content on platform |
+| `content.delete` | Delete content |
+| `users.view_details` | View detailed user information |
+| `users.suspend` | Suspend user accounts |
+| `users.reactivate` | Reactivate suspended accounts |
+| `users.view_analytics` | Access user analytics |
+| `transactions.view` | View transaction records |
+| `transactions.refund` | Process refunds |
+| `payouts.approve` | Approve payout requests |
+| `payouts.process` | Process approved payouts |
+| `support.tickets.view` | View support tickets |
+| `support.tickets.respond` | Respond to tickets |
+| `support.tickets.escalate` | Escalate tickets |
+| `support.tickets.close` | Close tickets |
+| `developers.create` | Create developer accounts |
+| `developers.view` | View developer accounts |
+| `developers.update` | Update developer accounts |
+| `developers.delete` | Delete developer accounts |
+
+```sql
+CREATE TYPE public.manager_permission AS ENUM (
+  'managers.create',
+  'managers.view',
+  'managers.update',
+  'managers.delete',
+  'content.moderate',
+  'content.approve',
+  'content.feature',
+  'content.delete',
+  'users.view_details',
+  'users.suspend',
+  'users.reactivate',
+  'users.view_analytics',
+  'transactions.view',
+  'transactions.refund',
+  'payouts.approve',
+  'payouts.process',
+  'support.tickets.view',
+  'support.tickets.respond',
+  'support.tickets.escalate',
+  'support.tickets.close',
+  'developers.create',
+  'developers.view',
+  'developers.update',
+  'developers.delete'
+);
+```
+
+### `manager_status`
+
+Status of a manager account:
+
+| Value | Description |
+|-------|-------------|
+| `ACTIVE` | Manager can access the system |
+| `INACTIVE` | Manager account is disabled |
+| `SUSPENDED` | Manager account is temporarily suspended |
+
+```sql
+CREATE TYPE public.manager_status AS ENUM ('ACTIVE', 'INACTIVE', 'SUSPENDED');
+```
+
+## Table Structure
+
+### `public.managers`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, references `auth.users(id)` | Primary key, links to auth.users |
+| **Profile** ||||
+| `full_name` | `text` | | Manager's full name |
+| `email` | `text` | not null | Manager's email address |
+| `department` | `text` | | Department the manager belongs to |
+| `bio` | `text` | | Manager biography |
+| `avatar_url` | `text` | | URL to avatar image |
+| `phone` | `text` | | Contact phone number |
+| **Status** ||||
+| `status` | `manager_status` | default 'ACTIVE' | Account status |
+| `last_login_at` | `timestamptz` | | Last login timestamp |
+| **Audit** ||||
+| `created_by` | `uuid` | references `auth.users(id)` | User who created this manager |
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+### `public.manager_user_roles`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `bigint` | PK, auto-generated | Unique identifier |
+| `user_id` | `uuid` | FK, references `managers(id)` on delete cascade | Links to manager |
+| **Role Assignment** ||||
+| `role` | `manager_role` | not null | Assigned role |
+| `assigned_by` | `uuid` | references `auth.users(id)` | Who assigned this role |
+| `assigned_at` | `timestamptz` | default now() | Assignment timestamp |
+
+**Unique Constraint:** `(user_id, role)` - prevents duplicate role assignments
+
+### `public.manager_role_permissions`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `bigint` | PK, auto-generated | Unique identifier |
+| **Permission Mapping** ||||
+| `role` | `manager_role` | not null | Manager role |
+| `permission` | `manager_permission` | not null | Permission granted to role |
+
+**Unique Constraint:** `(role, permission)` - prevents duplicate permission assignments
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_managers_id` | `id` | Primary key lookup |
+| `idx_managers_status` | `status` | Filter managers by status |
+| `idx_managers_created_by` | `created_by` | Filter by creator |
+| `idx_managers_email_trgm` | `email` (gin trgm) | Trigram search on email |
+| `idx_managers_full_name_trgm` | `full_name` (gin trgm) | Trigram search on name |
+| `idx_manager_user_roles_user_id` | `user_id` | Lookup roles by user |
+| `idx_manager_user_roles_role` | `role` | Lookup users by role |
+| `idx_manager_role_permissions_role` | `role` | Lookup permissions by role |
+
+## Row Level Security (RLS)
+
+RLS is enabled on all three tables with the following policies:
+
+### Select Policies
+
+| Policy Name | Table | Role | Description |
+|-------------|-------|------|-------------|
+| `Managers: Self view or authorized managers` | `managers` | authenticated | Users can view own profile or managers with `managers.view` permission |
+| `Manager Roles: Individual read access` | `manager_user_roles` | authenticated | Users can only view their own roles |
+
+### Insert Policies
+
+| Policy Name | Table | Role | Description |
+|-------------|-------|------|-------------|
+| `Managers: authorized managers insert only` | `managers` | authenticated | Only users with `managers.create` permission can insert |
+
+### Update Policies
+
+| Policy Name | Table | Role | Description |
+|-------------|-------|------|-------------|
+| `Managers: Self or authorized update` | `managers` | authenticated | Users can update own profile or users with `managers.update` permission |
+
+### Delete Policies
+
+| Policy Name | Table | Role | Description |
+|-------------|-------|------|-------------|
+| `Managers: Authorized delete only` | `managers` | authenticated | Only users with `managers.delete` permission can delete |
+
+## Functions
+
+### `public.authorize_manager(requested_permission manager_permission)`
+
+Checks if the current user has the requested permission based on their manager role. Reads the `manager_role` from the JWT token and queries the role-permissions mapping.
+
+```sql
+SELECT public.authorize_manager('managers.view');
+```
+
+**Security:** `SECURITY DEFINER` with empty `search_path` for security.
+
+### `public.create_manager(manager_email, manager_full_name, manager_role, manager_department)`
+
+Creates a new manager account with specified role. Performs the following:
+1. Generates a new UUID for the user
+2. Creates an entry in `auth.users`
+3. Creates a profile in `managers` table
+4. Assigns the specified role in `manager_user_roles`
+
+```sql
+SELECT public.create_manager(
+  'manager@example.com',
+  'John Doe',
+  'content_manager',
+  'Marketing'
+);
+```
+
+**Security:** `SECURITY DEFINER` - should only be called by service role.
+
+### `public.is_manager(user_email)`
+
+Checks if an email belongs to an active manager account. Used for admin panel authentication.
+
+```sql
+SELECT public.is_manager('admin@example.com');
+```
+
+**Returns:** `true` if email belongs to an active manager, `false` otherwise.
+
+**Security:** `SECURITY DEFINER` with empty `search_path`.
+
+### `public.custom_access_token_hook(event JSONB)`
+
+Auth hook that adds `manager_role` claim to JWT access tokens. This allows the role to be checked in RLS policies without additional database queries.
+
+```sql
+-- Automatically injected into JWT on login
+{
+  "manager_role": "content_manager"
+}
+```
+
+## Triggers
+
+### `on_manager_updated`
+
+Automatically updates the `updated_at` timestamp when a manager row is modified.
+
+### `on_manager_user_roles_updated`
+
+Automatically updates the `assigned_at` timestamp when a role assignment is modified.
+
+## Auth Hook Configuration
+
+The `custom_access_token_hook` function is configured as a Supabase auth hook to inject manager roles into JWT tokens:
+
+```sql
+GRANT EXECUTE ON FUNCTION public.custom_access_token_hook TO supabase_auth_admin;
+
+CREATE POLICY "Allow auth admin to read manager roles"
+ON public.manager_user_roles
+AS PERMISSIVE FOR SELECT
+TO supabase_auth_admin
+USING (true);
+```
+
+This allows the auth system to read manager roles when generating access tokens, while restricting direct access for regular users.
