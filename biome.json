@@ -14,7 +14,7 @@
       "!dist",
       "!build",
       "!.source",
-      "!docs"
+      "!reference"
     ]
   },
   "formatter": {
