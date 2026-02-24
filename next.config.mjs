@@ -13,6 +13,7 @@ const config = {
       },
     ];
   },
+  transpilePackages: ["@hobenakicoffee/libraries"],
 };
 
 export default withMDX(config);
