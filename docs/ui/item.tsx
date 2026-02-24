@@ -9,7 +9,7 @@ function ItemGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "group/item-group flex w-full flex-col gap-4 has-data-[size=sm]:gap-2.5 has-data-[size=xs]:gap-2",
-        className
+        className,
       )}
       data-slot="item-group"
       role="list"
@@ -52,7 +52,7 @@ const itemVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 function Item({
@@ -89,7 +89,7 @@ const itemMediaVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 function ItemMedia({
@@ -112,7 +112,7 @@ function ItemContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "flex flex-1 flex-col gap-1 group-data-[size=xs]/item:gap-0 [&+[data-slot=item-content]]:flex-none",
-        className
+        className,
       )}
       data-slot="item-content"
       {...props}
@@ -125,7 +125,7 @@ function ItemTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "line-clamp-1 flex w-fit items-center gap-2 font-medium text-sm leading-snug underline-offset-4",
-        className
+        className,
       )}
       data-slot="item-title"
       {...props}
@@ -138,7 +138,7 @@ function ItemDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       className={cn(
         "line-clamp-2 text-left font-normal text-muted-foreground text-sm leading-normal group-data-[size=xs]/item:text-xs [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
-        className
+        className,
       )}
       data-slot="item-description"
       {...props}
@@ -161,7 +161,7 @@ function ItemHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "flex basis-full items-center justify-between gap-2",
-        className
+        className,
       )}
       data-slot="item-header"
       {...props}
@@ -174,7 +174,7 @@ function ItemFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       className={cn(
         "flex basis-full items-center justify-between gap-2",
-        className
+        className,
       )}
       data-slot="item-footer"
       {...props}

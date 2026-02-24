@@ -17,7 +17,7 @@ const inputGroupVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 function InputGroup({
@@ -53,7 +53,7 @@ const inputGroupAddonVariants = cva(
     defaultVariants: {
       align: "inline-start",
     },
-  }
+  },
 );
 
 function InputGroupAddon({
@@ -92,7 +92,7 @@ const inputGroupButtonVariants = cva(
     defaultVariants: {
       size: "xs",
     },
-  }
+  },
 );
 
 function InputGroupButton({
@@ -121,7 +121,7 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
     <span
       className={cn(
         "flex items-center gap-2 text-muted-foreground text-sm [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
-        className
+        className,
       )}
       {...props}
     />
@@ -136,7 +136,7 @@ function InputGroupInput({
     <Input
       className={cn(
         "flex-1 rounded-none border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent",
-        className
+        className,
       )}
       data-slot="input-group-control"
       {...props}
@@ -152,7 +152,7 @@ function InputGroupTextarea({
     <Textarea
       className={cn(
         "flex-1 resize-none rounded-none border-0 bg-transparent py-2 shadow-none ring-0 focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent",
-        className
+        className,
       )}
       data-slot="input-group-control"
       {...props}

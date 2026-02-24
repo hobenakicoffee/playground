@@ -9,7 +9,7 @@ export function EmptyMinimal({
     <div
       className={cn(
         "h-fit rounded-lg border border-dashed py-8 text-center text-muted-foreground text-sm",
-        className
+        className,
       )}
       data-slot="empty"
       {...props}

@@ -92,7 +92,7 @@ function SidebarProvider({
       // biome-ignore lint/suspicious/noDocumentCookie: <shadcn frontend cookie>
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
-    [setOpenProp, open]
+    [setOpenProp, open],
   );
 
   // Helper to toggle the sidebar.
@@ -130,7 +130,7 @@ function SidebarProvider({
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
 
   return (
@@ -138,7 +138,7 @@ function SidebarProvider({
       <div
         className={cn(
           "group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
-          className
+          className,
         )}
         data-slot="sidebar-wrapper"
         style={
@@ -175,7 +175,7 @@ function Sidebar({
       <div
         className={cn(
           "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground/70",
-          className
+          className,
         )}
         data-slot="sidebar"
         {...props}
@@ -227,7 +227,7 @@ function Sidebar({
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
             ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
         )}
         data-slot="sidebar-gap"
       />
@@ -241,7 +241,7 @@ function Sidebar({
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
-          className
+          className,
         )}
         data-slot="sidebar-container"
         {...props}
@@ -296,7 +296,7 @@ function SidebarRail({ className, ...props }: ComponentProps<"button">) {
         "group-data-[collapsible=offCanvas]:translate-x-0 hover:group-data-[collapsible=offCanvas]:bg-sidebar group-data-[collapsible=offCanvas]:after:left-full",
         "[[data-side=left][data-collapsible=offCanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offCanvas]_&]:-left-2",
-        className
+        className,
       )}
       data-sidebar="rail"
       data-slot="sidebar-rail"
@@ -313,7 +313,7 @@ function SidebarInset({ className, ...props }: ComponentProps<"main">) {
     <main
       className={cn(
         "relative flex w-full flex-1 flex-col bg-primary/3",
-        className
+        className,
       )}
       data-slot="sidebar-inset"
       {...props}
@@ -373,7 +373,7 @@ function SidebarContent({ className, ...props }: ComponentProps<"div">) {
     <div
       className={cn(
         "no-scrollbar flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
-        className
+        className,
       )}
       data-sidebar="content"
       data-slot="sidebar-content"
@@ -404,7 +404,7 @@ function SidebarGroupLabel({
     <Comp
       className={cn(
         "ml-2 flex h-8 shrink-0 items-center rounded-md px-2 font-medium text-sidebar-foreground/50 text-sm outline-hidden ring-sidebar-ring transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 [&>svg]:size-4 [&>svg]:shrink-0",
-        className
+        className,
       )}
       data-sidebar="group-label"
       data-slot="sidebar-group-label"
@@ -424,7 +424,7 @@ function SidebarGroupAction({
     <Comp
       className={cn(
         "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground/70 outline-hidden ring-sidebar-ring transition-transform after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 group-data-[collapsible=icon]:hidden lg:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
-        className
+        className,
       )}
       data-sidebar="group-action"
       data-slot="sidebar-group-action"
@@ -486,7 +486,7 @@ const sidebarMenuButtonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 function SidebarMenuButton({
@@ -557,7 +557,7 @@ function SidebarMenuAction({
         "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground/70 outline-hidden ring-sidebar-ring transition-transform after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 peer-hover/menu-button:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 lg:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
         showOnHover &&
           "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-open:opacity-100 peer-data-active/menu-button:text-sidebar-accent-foreground lg:opacity-0",
-        className
+        className,
       )}
       data-sidebar="menu-action"
       data-slot="sidebar-menu-action"
@@ -571,7 +571,7 @@ function SidebarMenuBadge({ className, ...props }: ComponentProps<"div">) {
     <div
       className={cn(
         "pointer-events-none absolute right-1 flex h-5 min-w-5 select-none items-center justify-center rounded-md px-1 font-medium text-sidebar-foreground/70 text-xs tabular-nums peer-hover/menu-button:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 peer-data-active/menu-button:text-sidebar-accent-foreground",
-        className
+        className,
       )}
       data-sidebar="menu-badge"
       data-slot="sidebar-menu-badge"
@@ -623,7 +623,7 @@ function SidebarMenuSub({ className, ...props }: ComponentProps<"ul">) {
     <ul
       className={cn(
         "mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-sidebar-border border-l px-2.5 py-0.5 group-data-[collapsible=icon]:hidden",
-        className
+        className,
       )}
       data-sidebar="menu-sub"
       data-slot="sidebar-menu-sub"
@@ -660,7 +660,7 @@ function SidebarMenuSubButton({
     <Comp
       className={cn(
         "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground/70 outline-hidden ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-active:bg-sidebar-accent data-[size=md]:text-base data-[size=sm]:text-xs data-active:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
-        className
+        className,
       )}
       data-active={isActive}
       data-sidebar="menu-sub-button"

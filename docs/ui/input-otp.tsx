@@ -16,7 +16,7 @@ function InputOTP({
       className={cn("disabled:cursor-not-allowed", className)}
       containerClassName={cn(
         "cn-input-otp flex items-center has-disabled:opacity-50",
-        containerClassName
+        containerClassName,
       )}
       data-slot="input-otp"
       spellCheck={false}
@@ -30,7 +30,7 @@ function InputOTPGroup({ className, ...props }: ComponentProps<"div">) {
     <div
       className={cn(
         "flex items-center rounded-xl has-aria-invalid:border-destructive has-aria-invalid:ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40",
-        className
+        className,
       )}
       data-slot="input-otp-group"
       {...props}
@@ -52,7 +52,7 @@ function InputOTPSlot({
     <div
       className={cn(
         "relative flex size-9 items-center justify-center border-input border-y border-r bg-input/10 text-foreground text-sm outline-none transition-all first:rounded-l-xl first:border-l last:rounded-r-xl aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:border-ring data-[active=true]:border-l data-[active=true]:ring data-[active=true]:ring-ring data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20 sm:size-10 dark:data-[active=true]:aria-invalid:ring-destructive/40",
-        className
+        className,
       )}
       data-active={isActive}
       data-slot="input-otp-slot"

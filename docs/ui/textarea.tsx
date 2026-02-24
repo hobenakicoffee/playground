@@ -14,7 +14,7 @@ const textareaVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 function Textarea({
