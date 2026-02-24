@@ -1,0 +1,181 @@
+---
+title: Setup & Usage
+description: Learn how to install and use @hobenakicoffee/libraries
+---
+
+Framework-agnostic shared constants and utilities for "হবে নাকি Coffee?" projects.
+
+## Installation
+
+```bash
+npm install @hobenakicoffee/libraries
+# or
+pnpm add @hobenakicoffee/libraries
+# or
+yarn add @hobenakicoffee/libraries
+# or
+bun add @hobenakicoffee/libraries
+```
+
+## Usage
+
+This package exposes three entry points:
+
+- `@hobenakicoffee/libraries` (re-exports constants)
+- `@hobenakicoffee/libraries/constants`
+- `@hobenakicoffee/libraries/utils`
+
+### Examples
+
+```ts
+import { PaymentStatuses, ServiceTypes } from "@hobenakicoffee/libraries";
+
+import { SupporterPlatforms } from "@hobenakicoffee/libraries/constants";
+
+import {
+  formatAmount,
+  formatDate,
+  getUserPageLink,
+} from "@hobenakicoffee/libraries/utils";
+```
+
+## API at a Glance
+
+### Constants and Types
+
+| Entrypoint                            | Runtime exports                                                                                                                                              | Type exports                                                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `@hobenakicoffee/libraries`           | Re-exports all constants from `@hobenakicoffee/libraries/constants`                                                                                          | Re-exports all types from `@hobenakicoffee/libraries/constants`                                                         |
+| `@hobenakicoffee/libraries/constants` | `Visibility`, `productInfo`, `companyInfo`, `PaymentTypes`, `PaymentStatuses`, `PaymentProviders`, `PaymentDirections`, `SupporterPlatforms`, `ServiceTypes` | `Visibility`, `PaymentType`, `PaymentStatus`, `PaymentProvider`, `PaymentDirection`, `SupporterPlatform`, `ServiceType` |
+
+### Utilities
+
+| Entrypoint                        | Function exports                                                                                                                                                                                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@hobenakicoffee/libraries/utils` | `checkModeration`, `formatAmount`, `formatSignedAmount`, `formatDate`, `formatNumber`, `formatToPlainText`, `getSocialHandle`, `getSocialUrl`, `getUserNameInitials`, `getUserPageLink`, `openInNewWindow`, `shareToFacebook`, `shareToInstagram`, `shareToLinkedIn`, `shareToX`, `printQrSvg`, `toHumanReadable`, `validatePhoneNumber` |
+
+## Local Development
+
+Install dependencies:
+
+```bash
+bun install
+```
+
+Available scripts:
+
+```bash
+# Build the library
+bun run build
+
+# Run in watch mode during development
+bun run dev
+
+# Run tests
+bun run test
+
+# Run tests in watch mode
+bun run test:watch
+
+# Run type checking
+bun run typecheck
+
+# Alias for typecheck
+bun run lint
+
+# Clean build artifacts
+bun run clean
+```
+
+## Project Structure
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <Folder name="constants">
+      <File name="common.ts" />
+      <File name="legal.ts" />
+      <File name="payment.ts" />
+      <File name="platforms.ts" />
+      <File name="services.ts" />
+      <File name="index.ts" />
+    </Folder>
+    <Folder name="utils">
+      <File name="check-moderation.ts" />
+      <File name="format-amount.ts" />
+      <File name="format-date.ts" />
+      <File name="format-number.ts" />
+      <File name="format-plain-text.ts" />
+      <File name="get-social-handle.ts" />
+      <File name="get-social-link.ts" />
+      <File name="get-user-name-initials.ts" />
+      <File name="get-user-page-link.ts" />
+      <File name="open-to-new-window.ts" />
+      <File name="post-to-facebook.ts" />
+      <File name="post-to-instagram.ts" />
+      <File name="post-to-linkedin.ts" />
+      <File name="post-to-x.ts" />
+      <File name="qr-svg-utils.ts" />
+      <File name="to-human-readable.ts" />
+      <File name="validate-phone-number.ts" />
+      <File name="index.ts" />
+    </Folder>
+    <Folder name="moderation">
+      <File name="normalizer.ts" />
+      <File name="profanity-service.ts" />
+      <File name="index.ts" />
+    </Folder>
+    <Folder name="types">
+      <File name="supabase.ts" />
+      <File name="index.ts" />
+    </Folder>
+    <Folder name="lib">
+      <File name="utils.ts" />
+    </Folder>
+    <Folder name="providers">
+      <File name="theme-provider.tsx" />
+    </Folder>
+    <Folder name="components">
+      <Folder name="ui">
+        <File name="alert-dialog.tsx" />
+        <File name="alert.tsx" />
+        <File name="avatar.tsx" />
+        <File name="badge.tsx" />
+        <File name="breadcrumb.tsx" />
+        <File name="button-group.tsx" />
+        <File name="button.tsx" />
+        <File name="calendar.tsx" />
+        <File name="card.tsx" />
+        <File name="chart.tsx" />
+        <File name="checkbox.tsx" />
+        <File name="dialog.tsx" />
+        <File name="drawer.tsx" />
+        <File name="dropdown-menu.tsx" />
+        <File name="empty-minimal.tsx" />
+        <File name="empty.tsx" />
+        <File name="field.tsx" />
+        <File name="input-group.tsx" />
+        <File name="input-otp.tsx" />
+        <File name="input.tsx" />
+        <File name="item.tsx" />
+        <File name="label.tsx" />
+        <File name="popover.tsx" />
+        <File name="radio-group.tsx" />
+        <File name="select.tsx" />
+        <File name="separator.tsx" />
+        <File name="sheet.tsx" />
+        <File name="sidebar.tsx" />
+        <File name="skeleton.tsx" />
+        <File name="sonner.tsx" />
+        <File name="spinner.tsx" />
+        <File name="table.tsx" />
+        <File name="tabs.tsx" />
+        <File name="textarea.tsx" />
+        <File name="toggle-group.tsx" />
+        <File name="toggle.tsx" />
+        <File name="tooltip.tsx" />
+      </Folder>
+      <File name="turnstile-captcha.tsx" />
+    </Folder>
+  </Folder>
+</Files>
