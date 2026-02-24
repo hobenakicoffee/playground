@@ -4,3 +4,4 @@
 - Initial deployment
 - Added the Button UI component doc
 - Add the profiles schema docs
+- Add proper SEO
