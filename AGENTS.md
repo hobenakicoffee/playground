@@ -5,11 +5,18 @@ This document provides guidelines for AI agents working in this repository.
 ## Project Overview
 
 This is a Next.js documentation site using Fumadocs. It includes:
-- Next.js 16 with App Router
+- Next.js 16.1.6 with App Router
 - TypeScript with strict mode
 - Biome for linting and formatting
 - Tailwind CSS 4 for styling
-- Fumadocs for documentation
+- Fumadocs (core + MDX + UI) for documentation
+- Additional libraries:
+  - `@hugeicons/react` for icons
+  - `lucide-react` for icons
+  - `recharts` for charts
+  - `radix-ui` for UI primitives
+  - `mermaid` for diagrams
+  - `class-variance-authority` for component variants
 
 ## Commands
 
@@ -94,14 +101,25 @@ npm run types:check # Run TypeScript type checking (includes Fumadocs MDX proces
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── api/               # API routes
-│   └── *.tsx             # Page components
+│   ├── docs/              # Documentation pages
+│   ├── (home)/            # Home page routes
+│   └── *.tsx              # Page components
+├── components/            # React components
+│   ├── ai/               # AI-related components
+│   └── mdx/              # MDX components
+├── constants/            # Global constants
 ├── lib/                   # Utility functions
 │   ├── cn.ts             # Class name merging
-│   └── source.ts         # Fumadocs source config
-├── constants/            # Global constants
+│   ├── source.ts         # Fumadocs source config
+│   ├── utils.ts          # General utilities
+│   └── layout.shared.tsx # Shared layout components
+├── mdx-components.tsx    # MDX component mappings
+└── app/global.css        # Global styles
 content/
 └── docs/                 # MDX documentation files
-source.config.ts          # Fumadocs configuration
+    ├── index.mdx         # Home documentation page
+    ├── schemas/          # Schema documentation
+    └── components/       # Component documentation
 ```
 
 ## Common Tasks
@@ -119,13 +137,13 @@ source.config.ts          # Fumadocs configuration
 ### Adding Documentation
 1. Create MDX file in `content/docs/`
 2. Add frontmatter with title and description
-3. Optionally add to `meta.json` for navigation
+3. Optionally add to a `meta.json` in the same folder for navigation
 
 ## Configuration Files
 
 - `biome.json` - Linting and formatting rules
 - `tsconfig.json` - TypeScript configuration
-- `source.config.ts` - Fumadocs configuration
+- `src/lib/source.ts` - Fumadocs source configuration
 - `.vscode/settings.json` - VS Code workspace settings
 
 ## Notes for AI Agents
