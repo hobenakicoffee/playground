@@ -3,24 +3,183 @@ title: Profile Schema
 description: The profile database schema of the backend project.
 ---
 
+## Overview
+
+The profile schema provides public user profiles that are linked 1:1 with `auth.users`. It handles user identity, public pages, role-based access control, profile customization, and social features.
+
+## Entity Relationship Diagram
+
 <Mermaid
-  chart="
-graph TD;
-subgraph AA [Consumers]
-A[Mobile app];
-B[Web app];
-C[Node.js client];
-end
-subgraph BB [Services]
-E[REST API];
-F[GraphQL API];
-G[SOAP API];
-end
-Z[GraphQL API];
-A --> Z;
-B --> Z;
-C --> Z;
-Z --> E;
-Z --> F;
-Z --> G;"
+  chart='
+erDiagram
+  AUTH_USERS ||--|| PROFILES : "1:1 (id FK)"
+
+  AUTH_USERS {
+    uuid id PK
+    timestamptz created_at
+    jsonb raw_user_meta_data
+  }
+
+  PROFILES {
+    uuid id PK
+    text full_name
+    text username
+    text display_name
+    text bio
+    text avatar_url
+    text banner_url
+    text page_slug
+    user_role role
+    jsonb theme
+    jsonb layout
+    boolean allow_gifting
+    boolean allow_subscriptions
+    boolean is_page_active
+    boolean has_wallet_balance
+    jsonb social_links
+    jsonb thank_you_items
+    bigint follower_count
+    bigint following_count
+    timestamptz created_at
+    timestamptz updated_at
+  }
+'
 />
+
+## Enum Types
+
+### `user_role`
+
+Available roles for access control:
+
+| Value | Description |
+|-------|-------------|
+| `user` | Default role for regular users |
+| `admin` | Administrative role with elevated privileges |
+
+```sql
+create type public.user_role as enum ('user', 'admin');
+```
+
+## Table Structure
+
+### `public.profiles`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, references `auth.users(id)` on delete cascade | Primary key, links to auth.users |
+| `full_name` | `text` | | User's full name |
+| **Public Identity** ||||
+| `username` | `text` | unique, not null | Public username (3-50 chars) |
+| `display_name` | `text` | | Display name shown publicly |
+| `bio` | `text` | | User biography |
+| `avatar_url` | `text` | | URL to avatar image |
+| `banner_url` | `text` | | URL to banner image |
+| **Public Page** ||||
+| `page_slug` | `text` | unique, not null | URL slug for public profile page |
+| **Access Control** ||||
+| `role` | `user_role` | not null, default 'user' | User role for RBAC |
+| **Customization** ||||
+| `theme` | `jsonb` | | Theme configuration (colors, fonts) |
+| `layout` | `jsonb` | | Page builder layout |
+| **Feature Flags** ||||
+| `allow_gifting` | `boolean` | default true | Enable gifting on profile |
+| `allow_subscriptions` | `boolean` | default true | Enable subscriptions |
+| `is_page_active` | `boolean` | default true | Profile page visibility |
+| `has_wallet_balance` | `boolean` | default false | Has active wallet balance |
+| **Social** ||||
+| `social_links` | `jsonb` | default '[]' | Array of social link objects |
+| `thank_you_items` | `jsonb` | default '[]' | Items shown after successful gifting |
+| **Metrics** ||||
+| `follower_count` | `bigint` | default 0, >= 0 | Number of users following this profile |
+| `following_count` | `bigint` | default 0, >= 0 | Number of users this profile is following |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_profiles_page_slug` | `page_slug` | Fast lookup by page slug for public profiles |
+| `idx_profiles_username` | `username` | Fast lookup by username |
+| `idx_profiles_follower_count` | `follower_count` | Sort/filter by follower count |
+| `idx_profiles_following_count` | `following_count` | Sort/filter by following count |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `profiles` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Anyone can view all profiles` | `anon` | Public read access for anonymous users |
+| `Authenticated users can view all profiles` | `authenticated` | Public read access for logged-in users |
+
+### Insert Policy
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can create their own profile` | `authenticated` | Users can only create their own profile with default 'user' role |
+
+### Update Policy
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can update own profile, admins can update any` | `authenticated` | Users update their own profile; admins can update any profile including role |
+
+### Delete Policy
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can delete own profile, admins can delete any` | `authenticated` | Users delete their own profile; admins can delete any profile |
+
+## Helper Function
+
+### `public.is_admin()`
+
+Returns `true` if the current user has admin role:
+
+```sql
+select public.is_admin();
+```
+
+Used internally by RLS policies to grant admin privileges.
+
+## Triggers
+
+### `on_profile_updated`
+
+Automatically updates the `updated_at` timestamp when a profile row is modified.
+
+### `on_auth_user_created`
+
+Automatically creates a new profile when a user is created in `auth.users`. Takes the following from `raw_user_meta_data`:
+- `full_name` → profile's `full_name`
+- `avatar_url` → profile's `avatar_url`
+
+Uses the user's UUID as both `username` and `page_slug` initially.
+
+## Storage Buckets
+
+Two storage buckets are configured for profile media:
+
+### Avatars Bucket
+
+| Policy | Description |
+|--------|-------------|
+| `Avatar images are publicly accessible` | Anyone can view avatars |
+| `Authenticated users can upload avatars` | Users upload to their own folder |
+| `Users can update/delete their own avatars` | Owner can modify their avatar |
+| `Admins can upload/update/delete any avatar` | Full admin access |
+
+### Banners Bucket
+
+| Policy | Description |
+|--------|-------------|
+| `Banner images are publicly accessible` | Anyone can view banners |
+| `Authenticated users can upload banners` | Users upload to their own folder |
+| `Users can update/delete their own banners` | Owner can modify their banner |
+| `Admins can upload/update/delete any banner` | Full admin access |
