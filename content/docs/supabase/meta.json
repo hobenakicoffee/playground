@@ -1,0 +1,6 @@
+{
+  "title": "Supabase",
+  "description": "The every detail of the Supabase setup on this project.",
+  "root": true,
+  "pages": ["frequently-used-commands"]
+}
