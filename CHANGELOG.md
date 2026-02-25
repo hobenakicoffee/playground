@@ -4,6 +4,7 @@
 - Fixed the css classes not finding issue on the components
 - Ordered pages on the schema folder
 - Added components reference files
+- Added supabase frequently used commands doc
 
 ## 24 Feb, 2026
 - Initial deployment
