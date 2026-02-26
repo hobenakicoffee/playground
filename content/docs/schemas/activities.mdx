@@ -1,0 +1,135 @@
+---
+title: Activities Schema
+description: The activities database schema of the backend project.
+---
+
+## Overview
+
+The activities schema provides a unified activity feed derived from transactions. It supports both creator feeds and supporter feeds, storing display metadata only with no money logic. Activities are scoped per user and can be either public or private.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ ACTIVITIES : "owner"
+  PROFILES ||--o{ ACTIVITIES : "counterparty"
+  TRANSACTIONS ||--o{ ACTIVITIES : "source"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+    text avatar_url
+  }
+
+  ACTIVITIES {
+    uuid id PK
+    uuid transaction_id FK
+    uuid reference_id
+    uuid user_profile_id FK
+    uuid counterparty_profile_id FK
+    varchar role
+    varchar service_type
+    jsonb metadata
+    visibility_enum visibility
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  TRANSACTIONS {
+    uuid id PK
+  }
+'
+/>
+
+## Enum Types
+
+### `visibility_enum`
+
+| Value | Description |
+|-------|-------------|
+| `public` | Visible to everyone |
+| `private` | Visible only to the owner |
+
+## Table Structure
+
+### `public.activities`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Source** ||||
+| `transaction_id` | `uuid` | references `transactions(id)` on delete cascade | Source transaction (can be null for non-transaction activities like follows) |
+| `reference_id` | `uuid` | not null | Groups multiple transactions logically |
+| **Owner** ||||
+| `user_profile_id` | `uuid` | references `profiles(id)` on delete cascade | Activity owner (who sees this in feed) |
+| **Counterparty** ||||
+| `counterparty_profile_id` | `uuid` | references `profiles(id)` on delete set null | Optional counterparty for display |
+| **Activity Details** ||||
+| `role` | `varchar(20)` | not null, check in ('creator', 'supporter', 'system') | Viewer's role in this activity |
+| `service_type` | `varchar(20)` | not null, default 'gift' | Service type for filtering |
+| **Display Metadata** ||||
+| `metadata` | `jsonb` | not null, default '{}' | Activity display data (message, coffee_count, etc.) |
+| **Visibility** ||||
+| `visibility` | `visibility_enum` | not null, default 'public' | Public creator feed vs private |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_activities_user_profile_id` | `user_profile_id` | Fast lookup by user |
+| `idx_activities_counterparty_profile_id` | `counterparty_profile_id` | Fast lookup by counterparty |
+| `idx_activities_transaction_id` | `transaction_id` | Fast lookup by transaction |
+| `idx_activities_reference_id` | `reference_id` | Fast lookup by reference |
+| `idx_activities_visibility` | `visibility` | Filter by visibility |
+| `idx_activities_created_at` | `created_at desc` | Sort by recent |
+| `idx_activities_user_service_created` | `user_profile_id, service_type, created_at desc` | Composite for filtered pagination |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `activities` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Anonymous users can view public activities` | `anon` | Only public activities visible |
+| `Users can view own or public activities` | `authenticated` | Own activities + public activities |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Block direct inserts on activities` | `authenticated` | Only backend/RPC should insert |
+
+### Update/Delete Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Block updates on activities` | `authenticated` | Activities are immutable |
+| `Block deletes on activities` | `authenticated` | Activities cannot be deleted |
+
+## Triggers
+
+### `on_activity_updated`
+
+Automatically updates the `updated_at` timestamp when an activity row is modified.
+
+```sql
+create trigger on_activity_updated
+  before update on public.activities
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+## Notes
+
+- Activity links to a single transaction row
+- `reference_id` groups multiple transactions logically
+- Activities are immutable once created (except visibility can be changed by system)
+- Supports activities beyond transactions (e.g., follows) where `transaction_id` is null

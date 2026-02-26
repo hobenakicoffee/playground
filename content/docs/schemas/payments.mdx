@@ -1,0 +1,98 @@
+---
+title: Payments Schema
+description: The payments function documentation of the backend project.
+---
+
+## Overview
+
+The payments module contains the `handle_successful_payment` function which processes successful payments. It handles both authenticated and anonymous supporters, manages wallet operations, creates transaction records, and generates activity feed entries.
+
+## Helper Function
+
+### `public.handle_successful_payment()`
+
+Processes a successful payment by:
+1. Handling supporter wallet operations (for HobeNakiCoffee provider)
+2. Creating transaction records for both supporter and creator
+3. Generating activity feed entries
+4. Returning structured response
+
+```sql
+select public.handle_successful_payment(
+  'uuid',           -- p_creator_profile_id
+  'uuid',           -- p_supporter_id
+  100.00,           -- p_amount
+  10.00,            -- p_platform_fee
+  'Bkash',          -- p_provider
+  'one-time',       -- p_reference_type
+  'TXN123',         -- p_provider_transaction_id
+  null,             -- p_supporter_profile_id (null for anonymous)
+  'gift',           -- p_service_type
+  '{}'              -- p_metadata
+);
+```
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `p_creator_profile_id` | `uuid` | required | Creator receiving the payment |
+| `p_supporter_id` | `uuid` | required | Supporter ID from supporters table |
+| `p_amount` | `numeric(10,2)` | required | Total payment amount |
+| `p_platform_fee` | `numeric(10,2)` | required | Platform fee to deduct |
+| `p_provider` | `provider_enum` | required | Payment provider |
+| `p_reference_type` | `reference_type_enum` | required | Type of payment |
+| `p_provider_transaction_id` | `varchar` | required | External transaction ID |
+| `p_supporter_profile_id` | `uuid` | null | Supporter's profile ID (null for anonymous) |
+| `p_service_type` | `varchar` | 'gift' | Service type |
+| `p_metadata` | `jsonb` | '{}' | Additional metadata |
+
+#### Returns
+
+```json
+{
+  "success": true,
+  "reference_id": "uuid",
+  "supporter_transaction_id": "uuid",
+  "creator_transaction_id": "uuid",
+  "supporter_balance_after": 100.00,
+  "creator_balance_after": 90.00
+}
+```
+
+#### Security
+
+- Only callable by the service role (server-side)
+- Raises exception if called by authenticated users
+
+#### Behavior
+
+**For Authenticated Supporters with HobeNakiCoffee:**
+- Locks and deducts supporter wallet balance
+- Raises exception if insufficient balance
+
+**For External Providers:**
+- No wallet deduction for supporters
+- Creates transaction records with balance snapshot
+
+**For Anonymous Supporters:**
+- No wallet operations
+- Creates only creator-side transaction
+
+**Transactions Created:**
+- Supporter transaction (DEBIT): Only for authenticated supporters
+- Creator transaction (CREDIT): Always created
+
+**Activities Created:**
+- Supporter activity (private): Only for authenticated supporters
+- Creator activity (public): Always created with supporter_anonymous flag
+
+#### Validation Rules
+
+| Rule | Description |
+|------|-------------|
+| Amount > 0 | Payment amount must be positive |
+| Platform fee &gt;= 0 | Fee cannot be negative |
+| Fee &lt;= amount | Fee cannot exceed total amount |
+| No self-gifting | Cannot gift to yourself |
+| HobeNakiCoffee = one-time/subscription | Internal provider only for specific types |

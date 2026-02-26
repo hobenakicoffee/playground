@@ -1,0 +1,119 @@
+---
+title: Wallets Schema
+description: The wallets database schema of the backend project.
+---
+
+## Overview
+
+The wallets schema tracks current wallet balance for each creator profile. It maintains a 1:1 relationship with profiles, recording available funds and locked balances for pending withdrawals.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--|| WALLETS : "1:1"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+    boolean has_wallet_balance
+  }
+
+  WALLETS {
+    uuid id PK
+    uuid profile_id FK unique
+    numeric(12,2) balance
+    numeric(12,2) locked_balance
+    text currency
+    timestamptz created_at
+    timestamptz updated_at
+  }
+'
+/>
+
+## Table Structure
+
+### `public.wallets`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Profile** ||||
+| `profile_id` | `uuid` | unique, references `profiles(id)` on delete cascade | Links to creator profile |
+| **Balance** ||||
+| `balance` | `numeric(12,2)` | not null, default 0, >= 0 | Available funds in BDT |
+| `locked_balance` | `numeric(12,2)` | not null, default 0, >= 0 | Funds pending withdrawal |
+| **Currency** ||||
+| `currency` | `text` | not null, default 'BDT' | Currency code |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_wallets_profile_id` | `profile_id` | Fast lookup by profile |
+| `idx_wallets_updated_at` | `updated_at desc` | Sort by recent updates |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `wallets` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view their own wallet` | `authenticated` | Users can only view their own wallet |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can create their own wallet` | `authenticated` | Users can only create their own wallet |
+
+### Update Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `System can update wallet balance` | `authenticated` | Only system/backend can update wallet balance |
+
+## Triggers
+
+### `on_wallet_updated`
+
+Automatically updates the `updated_at` timestamp when a wallet row is modified.
+
+```sql
+create trigger on_wallet_updated
+  before update on public.wallets
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+### `on_wallet_balance_changed`
+
+Automatically syncs `has_wallet_balance` to the profiles table when balance changes.
+
+```sql
+create trigger on_wallet_balance_changed
+  after insert or update of balance on public.wallets
+  for each row
+  execute procedure public.handle_wallet_balance_change();
+```
+
+#### Behavior
+
+When a wallet's balance is updated:
+- `has_wallet_balance` is set to `true` if balance > 0, otherwise `false`
+- The profile's `updated_at` is also updated
+
+## Notes
+
+- Each profile can have only one wallet (1:1 relationship)
+- `balance` represents current available funds in Taka (BDT)
+- `locked_balance` represents funds that are pending withdrawal
+- Total withdrawable = `balance - locked_balance`

@@ -1,0 +1,177 @@
+---
+title: Withdrawal Requests Schema
+description: The withdrawal_requests database schema of the backend project.
+---
+
+## Overview
+
+The withdrawal_requests schema tracks user withdrawal requests and manages the withdrawal lifecycle from requested through paid status. It stores payout method details and manages fund locking during the withdrawal process.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ WITHDRAWAL_REQUESTS : "requests"
+  WALLETS ||--o{ WITHDRAWAL_REQUESTS : "locks"
+  PAYOUT_METHODS ||--o{ WITHDRAWAL_REQUESTS : "payout"
+
+  PROFILES {
+    uuid id PK
+  }
+
+  WALLETS {
+    uuid id PK
+  }
+
+  PAYOUT_METHODS {
+    uuid id PK
+  }
+
+  WITHDRAWAL_REQUESTS {
+    uuid id PK
+    uuid profile_id FK
+    uuid wallet_id FK
+    uuid payout_method_id FK
+    numeric amount
+    numeric fee
+    numeric net_amount
+    withdrawal_status status
+    timestamptz requested_at
+    timestamptz processed_at
+    timestamptz completed_at
+    text admin_note
+    text failure_reason
+    jsonb payout_snapshot
+  }
+'
+/>
+
+## Enum Types
+
+### `withdrawal_status`
+
+| Value | Description |
+|-------|-------------|
+| `requested` | Withdrawal requested by user |
+| `approved` | Approved by admin |
+| `processing` | Being processed |
+| `paid` | Successfully paid |
+| `rejected` | Rejected by admin |
+| `failed` | Processing failed |
+
+## Table Structure
+
+### `public.withdrawal_requests`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **References** ||||
+| `profile_id` | `uuid` | references `profiles(id)` on delete cascade | Requesting user |
+| `wallet_id` | `uuid` | references `wallets(id)` on delete cascade | Source wallet |
+| `payout_method_id` | `uuid` | references `payout_methods(id)` on delete restrict | Payout destination |
+| **Amount** ||||
+| `amount` | `numeric(12,2)` | not null, > 0 | Requested amount |
+| `fee` | `numeric(12,2)` | not null, default 0, >= 0 | Withdrawal fee |
+| `net_amount` | `numeric(12,2)` | not null, > 0 | Amount after fee |
+| **Status** ||||
+| `status` | `withdrawal_status` | not null, default 'requested' | Current status |
+| **Timestamps** ||||
+| `requested_at` | `timestamptz` | default now() | Request timestamp |
+| `processed_at` | `timestamptz` | | Admin approval timestamp |
+| `completed_at` | `timestamptz` | | Final completion timestamp |
+| **Notes** ||||
+| `admin_note` | `text` | | Admin comments |
+| `failure_reason` | `text` | | Reason for rejection/failure |
+| **Snapshot** ||||
+| `payout_snapshot` | `jsonb` | | Payout method details at time of request |
+
+## Status Flow
+
+```
+requested → approved → processing → paid
+              ↓              ↓
+          rejected       failed
+```
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_withdrawal_requests_profile_id` | `profile_id` | Fast lookup by user |
+| `idx_withdrawal_requests_profile_requested_at` | `profile_id, requested_at desc` | User's withdrawal history |
+| `idx_withdrawal_requests_status` | `status` | Filter by status |
+| `idx_withdrawal_requests_wallet_id` | `wallet_id` | Fast lookup by wallet |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `withdrawal_requests` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view their own withdrawal requests` | `authenticated` | Users can only view their own requests |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can create their own withdrawal requests` | `authenticated` | Users can only create their own requests |
+
+### Update Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `System can update withdrawal requests` | `authenticated` | Users can update (admin only via service role) |
+
+## Helper Function
+
+### `request_withdrawal()`
+
+Creates a withdrawal request and locks funds in the wallet.
+
+```sql
+select request_withdrawal(
+  p_amount := 1000,
+  p_payout_method_id := 'uuid'
+);
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `p_amount` | `numeric` | Withdrawal amount |
+| `p_payout_method_id` | `uuid` | Payout method ID |
+
+#### Returns
+
+Returns the `uuid` of the created withdrawal request.
+
+#### Validation Rules
+
+| Rule | Description |
+|------|-------------|
+| Amount > 0 | Amount must be positive |
+| Minimum withdrawal | Minimum 500 BDT |
+| Sufficient balance | Must have enough available balance |
+| Valid payout method | Must belong to user and be active |
+
+#### Behavior
+
+1. Validates amount and payout method
+2. Locks funds in wallet (`locked_balance`)
+3. Creates withdrawal request record
+4. Creates transaction record with `withdraw_lock` reference type
+5. Returns withdrawal request ID
+
+## Notes
+
+- Status flows: requested → approved → processing → paid
+- Rejected/failed states refund locked balance to available balance
+- `processed_at` tracks when admin approved/processed
+- `completed_at` tracks final completion
+- `payout_snapshot` preserves payout method details even if method is deleted

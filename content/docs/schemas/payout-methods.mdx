@@ -1,0 +1,142 @@
+---
+title: Payout Methods Schema
+description: The payout_methods database schema of the backend project.
+---
+
+## Overview
+
+The payout_methods schema stores user payout/withdrawal methods. It supports mobile banking (bKash, Nagad, Rocket) and bank transfers with flexible JSONB storage for provider-specific details.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ PAYOUT_METHODS : "owns"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+  }
+
+  PAYOUT_METHODS {
+    uuid id PK
+    uuid profile_id FK
+    payout_provider provider
+    jsonb details
+    boolean is_default
+    boolean is_active
+    timestamptz created_at
+    timestamptz updated_at
+  }
+'
+/>
+
+## Enum Types
+
+### `payout_provider`
+
+| Value | Description |
+|-------|-------------|
+| `bkash` | bKash mobile banking |
+| `nagad` | Nagad mobile banking |
+| `rocket` | Rocket mobile banking |
+| `bank` | Bank transfer |
+
+## Table Structure
+
+### `public.payout_methods`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Profile** ||||
+| `profile_id` | `uuid` | references `profiles(id)` on delete cascade | Owner profile |
+| **Provider** ||||
+| `provider` | `payout_provider` | not null | Payment provider |
+| **Details** ||||
+| `details` | `jsonb` | not null, default '{}' | Provider-specific details |
+| **Flags** ||||
+| `is_default` | `boolean` | not null, default false | Primary payout method |
+| `is_active` | `boolean` | not null, default true | Soft-delete flag |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+### Details JSON Structure
+
+**bKash/Nagad/Rocket:**
+```json
+{
+  "number": "01XXXXXXXXX",
+  "type": "personal"
+}
+```
+
+**Bank:**
+```json
+{
+  "bank_name": "BRAC Bank",
+  "account_name": "John Doe",
+  "account_number": "123456789",
+  "routing_number": "090000",
+  "branch_name": "Gulshan"
+}
+```
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_payout_methods_profile_id` | `profile_id` | Fast lookup by profile |
+| `idx_payout_methods_profile_active` | `profile_id, is_active` | Filter active methods by profile |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `payout_methods` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view their own payout methods` | `authenticated` | Users can only view their own methods |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can insert their own payout methods` | `authenticated` | Users can only insert their own methods |
+
+### Update Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can update their own payout methods` | `authenticated` | Users can only update their own methods |
+
+### Delete Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can delete their own payout methods` | `authenticated` | Users can only delete their own methods |
+
+## Triggers
+
+### `on_payout_method_updated`
+
+Automatically updates the `updated_at` timestamp when a payout method row is modified.
+
+```sql
+create trigger on_payout_method_updated
+  before update on public.payout_methods
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+## Notes
+
+- Each user can have multiple payout methods
+- `is_default` indicates the primary payout method
+- `is_active` allows soft-deleting methods without removing historical data
+- Details JSONB stores provider-specific data securely
