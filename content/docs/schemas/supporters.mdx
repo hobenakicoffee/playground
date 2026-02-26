@@ -1,0 +1,196 @@
+---
+title: Supporters Schema
+description: The supporters database schema of the backend project.
+---
+
+## Overview
+
+The supporters schema tracks users who have gifted coffee to creators. It aggregates support metrics per supporter-creator relationship and supports both authenticated and anonymous supporters through identity hashing.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ SUPPORTERS : "supported by"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+    text avatar_url
+  }
+
+  SUPPORTERS {
+    uuid id PK
+    uuid user_profile_id FK
+    uuid creator_id FK
+    varchar name
+    supporter_platform_enum social_platform
+    timestamptz first_supported_at
+    timestamptz last_supported_at
+    bigint total_amount
+    integer support_count
+    varchar last_supported_service
+    varchar identity_hash
+    timestamptz created_at
+    timestamptz updated_at
+  }
+'
+/>
+
+## Enum Types
+
+### `supporter_platform_enum`
+
+Social platforms that supporters can link to their support:
+
+| Value | Description |
+|-------|-------------|
+| `facebook` | Facebook |
+| `x` | X (Twitter) |
+| `instagram` | Instagram |
+| `youtube` | YouTube |
+| `github` | GitHub |
+| `linkedin` | LinkedIn |
+| `twitch` | Twitch |
+| `tiktok` | TikTok |
+| `threads` | Threads |
+| `whatsapp` | WhatsApp |
+| `telegram` | Telegram |
+| `discord` | Discord |
+| `reddit` | Reddit |
+| `pinterest` | Pinterest |
+| `medium` | Medium |
+| `devto` | Dev.to |
+| `behance` | Behance |
+| `dribbble` | Dribbble |
+
+```sql
+create type public.supporter_platform_enum as enum (
+  'facebook', 'x', 'instagram', 'youtube', 'github',
+  'linkedin', 'twitch', 'tiktok', 'threads', 'whatsapp',
+  'telegram', 'discord', 'reddit', 'pinterest', 'medium',
+  'devto', 'behance', 'dribbble'
+);
+```
+
+## Table Structure
+
+### `public.supporters`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Authenticated Supporter** ||||
+| `user_profile_id` | `uuid` | references `profiles(id)` on delete set null | Links to authenticated user profile (nullable for anonymous) |
+| **Creator** ||||
+| `creator_id` | `uuid` | references `profiles(id)` on delete cascade | The creator being supported |
+| **Supporter Identity** ||||
+| `name` | `varchar` | not null | Supporter display name |
+| `social_platform` | `supporter_platform_enum` | | Social platform linked to support |
+| **Support Metrics** ||||
+| `first_supported_at` | `timestamptz` | | Timestamp of first support |
+| `last_supported_at` | `timestamptz` | | Timestamp of most recent support |
+| `total_amount` | `bigint` | not null, default 0, >= 0 | Total amount gifted |
+| `support_count` | `integer` | not null, default 0, >= 0 | Number of support events |
+| `last_supported_service` | `varchar` | | Service used for most recent support |
+| **Deduplication** ||||
+| `identity_hash` | `varchar` | not null | Hash for deduplicating anonymous supporters |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+### Constraints
+
+| Constraint | Columns | Description |
+|------------|---------|-------------|
+| `supporters_unique_user_creator` | `(user_profile_id, creator_id)` | Ensures unique supporter per creator for authenticated users |
+| `supporters_unique_identity_per_creator` | `(creator_id, identity_hash)` | Deduplicates anonymous supporters per creator |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_supporters_creator_id` | `creator_id` | Fast lookup by creator |
+| `idx_supporters_user_profile_id` | `user_profile_id` | Fast lookup by user profile |
+| `idx_supporters_identity_hash` | `identity_hash` | Fast lookup by identity hash |
+| `idx_supporters_last_supported_at` | `last_supported_at desc` | Sort by recent support activity |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `supporters` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Authenticated users can view supporters` | `authenticated` | All authenticated users can view supporters |
+
+### Update Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Creators can update their supporters` | `authenticated` | Only the creator can update their supporters (via backend logic) |
+
+## Helper Function
+
+### `public.upsert_supporter()`
+
+Creates or updates a supporter record with aggregated metrics. This function handles both authenticated and anonymous supporters.
+
+```sql
+select public.upsert_supporter(
+  p_creator_id := 'uuid',
+  p_name := 'Supporter Name',
+  p_identity_hash := 'hash-value',
+  p_user_profile_id := null,  -- uuid for authenticated, null for anonymous
+  p_social_platform := null,  -- supporter_platform_enum
+  p_amount := 100,            -- amount in smallest unit
+  p_service_type := 'coffee'  -- service identifier
+);
+```
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `p_creator_id` | `uuid` | required | The creator being supported |
+| `p_name` | `varchar` | required | Supporter display name |
+| `p_identity_hash` | `varchar` | required | Hash for deduplication: `hash(creator_id + display_name + client_ip + user_agent)` |
+| `p_user_profile_id` | `uuid` | null | User profile ID for authenticated supporters |
+| `p_social_platform` | `supporter_platform_enum` | null | Social platform linked to support |
+| `p_amount` | `bigint` | 0 | Amount being gifted |
+| `p_service_type` | `varchar` | null | Service identifier (e.g., 'coffee', 'subscription') |
+
+#### Returns
+
+Returns the `uuid` of the created or updated supporter record.
+
+#### Behavior
+
+- **Authenticated supporters** (with `user_profile_id`): Upserts on `(user_profile_id, creator_id)`
+- **Anonymous supporters** (without `user_profile_id`): Upserts on `(creator_id, identity_hash)`
+- On update: increments `support_count`, adds to `total_amount`, updates `last_supported_at`
+- If an anonymous supporter later authenticates, the record is merged via `coalesce`
+
+## Triggers
+
+### `on_supporter_updated`
+
+Automatically updates the `updated_at` timestamp when a supporter row is modified.
+
+```sql
+create trigger on_supporter_updated
+  before update on public.supporters
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+## Notes
+
+- `user_profile_id` is nullable to support anonymous supporters
+- `identity_hash` is calculated as: `hash(creator_id + display_name + client_ip + user_agent)`
+- Each unique identity hash is unique per creator, enabling deduplication of anonymous supporters
+- For authenticated users, the name is automatically derived from their profile but can be overridden

@@ -1,0 +1,122 @@
+---
+title: Coffee Gifts Schema
+description: The coffee_gifts database schema of the backend project.
+---
+
+## Overview
+
+The coffee_gifts schema stores completed coffee gifts only. Rows are created AFTER successful payment. It supports both authenticated and anonymous supporters, with denormalized data for anonymity and historical accuracy.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ COFFEE_GIFTS : "received"
+  PROFILES ||--o{ COFFEE_GIFTS : "sent"
+  TRANSACTIONS ||--o{ COFFEE_GIFTS : "reference"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+  }
+
+  COFFEE_GIFTS {
+    uuid id PK
+    uuid creator_profile_id FK
+    uuid supporter_profile_id FK
+    varchar supporter_name
+    varchar supporter_platform
+    varchar message
+    integer coffee_count
+    boolean is_monthly
+    uuid transaction_reference_id FK
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  TRANSACTIONS {
+    uuid reference_id PK
+  }
+'
+/>
+
+## Table Structure
+
+### `public.coffee_gifts`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Creator** ||||
+| `creator_profile_id` | `uuid` | references `profiles(id)` on delete set null | Creator receiving the coffee |
+| **Supporter** ||||
+| `supporter_profile_id` | `uuid` | references `profiles(id)` on delete set null | Authenticated supporter (nullable for anonymous) |
+| **Supporter Snapshot** ||||
+| `supporter_name` | `varchar(100)` | | Denormalized name for anonymity + history |
+| `supporter_platform` | `varchar(30)` | | Platform linked to support |
+| **Gift Details** ||||
+| `message` | `varchar(500)` | | Gift message |
+| `coffee_count` | `integer` | not null, > 0 | Number of coffees gifted |
+| `is_monthly` | `boolean` | not null, default false | Monthly subscription flag |
+| **Reference** ||||
+| `transaction_reference_id` | `uuid` | references `transactions(reference_id)` on delete restrict | Links to unified transactions ledger |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_coffee_gifts_creator_profile_id` | `creator_profile_id` | Fast lookup by creator |
+| `idx_coffee_gifts_supporter_profile_id` | `supporter_profile_id` | Fast lookup by supporter |
+| `idx_coffee_gifts_transaction_reference_id` | `transaction_reference_id` | Fast lookup by transaction reference |
+| `idx_coffee_gifts_created_at` | `created_at desc` | Sort by recent gifts |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `coffee_gifts` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view coffee gifts` | `authenticated` | View all gifts, plus own gifts |
+| `Anonymous can view coffee gifts` | `anon` | Public access to all gifts |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can insert coffee gifts` | `authenticated, anon` | Insert after successful payment |
+
+### Update/Delete Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Block updates on coffee gifts` | `authenticated` | Coffee gifts are immutable |
+| `Block deletes on coffee gifts` | `authenticated` | Coffee gifts cannot be deleted |
+
+## Triggers
+
+### `on_coffee_gifts_updated`
+
+Automatically updates the `updated_at` timestamp when a coffee gift row is modified.
+
+```sql
+create trigger on_coffee_gifts_updated
+  before update on public.coffee_gifts
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+## Notes
+
+- Rows are created ONLY after successful payment
+- No lifecycle or status column - the transactions table is the source of truth for money
+- `supporter_profile_id` is nullable to support anonymous supporters
+- Supporter name and platform are denormalized for historical accuracy even if user deletes account
+- Multiple transaction rows share the same `transaction_reference_id`

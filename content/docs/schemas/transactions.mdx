@@ -1,0 +1,200 @@
+---
+title: Transactions Schema
+description: The transactions database schema of the backend project.
+---
+
+## Overview
+
+The transactions schema is a user-centric financial ledger that tracks all financial transactions including gifts, subscriptions, and payouts. Each row represents a transaction from one user's perspective, maintaining balance snapshots and provider details.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ TRANSACTIONS : "user"
+  PROFILES ||--o{ TRANSACTIONS : "counterparty"
+  PROFILES ||--o{ TRANSACTIONS : "creator"
+  WALLETS ||--o{ TRANSACTIONS : "ledger"
+  SUPPORTERS ||--o{ TRANSACTIONS : "attribution"
+
+  PROFILES {
+    uuid id PK
+  }
+
+  TRANSACTIONS {
+    uuid id PK
+    uuid user_profile_id FK
+    uuid counterparty_profile_id FK
+    uuid supporter_id FK
+    uuid creator_profile_id FK
+    varchar service_type
+    reference_type_enum reference_type
+    transaction_direction_enum direction
+    numeric amount
+    numeric platform_fee
+    numeric net_amount
+    payment_status_enum status
+    provider_enum provider
+    varchar provider_transaction_id
+    uuid reference_id
+    bigint balance_after
+    uuid wallet_id FK
+    jsonb metadata
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  WALLETS {
+    uuid id PK
+  }
+
+  SUPPORTERS {
+    uuid id PK
+  }
+'
+/>
+
+## Enum Types
+
+### `reference_type_enum`
+
+| Value | Description |
+|-------|-------------|
+| `subscription` | Recurring subscription payment |
+| `one-time` | One-time payment |
+| `payout` | Payout to creator |
+| `withdraw_lock` | Funds locked for withdrawal |
+| `withdraw_release` | Withdrawal rejected, funds released |
+| `withdraw_complete` | Withdrawal completed |
+| `manual_adjustment` | Manual balance adjustment |
+
+### `transaction_direction_enum`
+
+| Value | Description |
+|-------|-------------|
+| `debit` | Money leaving the account |
+| `credit` | Money entering the account |
+
+### `payment_status_enum`
+
+| Value | Description |
+|-------|-------------|
+| `pending` | Payment initiated |
+| `processing` | Payment being processed |
+| `completed` | Payment successful |
+| `failed` | Payment failed |
+| `reversed` | Payment reversed |
+| `cancelled` | Payment cancelled |
+| `refunded` | Payment refunded |
+| `reviewing` | Under review |
+
+### `provider_enum`
+
+| Value | Description |
+|-------|-------------|
+| `HobeNakiCoffee` | Internal wallet |
+| `Bkash` | bKash mobile banking |
+| `Nagad` | Nagad mobile banking |
+| `Rocket` | Rocket mobile banking |
+| `Upay` | Upay mobile banking |
+| `SSLCommerz` | SSLCommerz payment gateway |
+| `Aamarpay` | Aamarpay payment gateway |
+| `Portwallet` | Portwallet payment gateway |
+| `Tap` | Tap payment gateway |
+| `Other` | Other payment providers |
+
+## Table Structure
+
+### `public.transactions`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Owner** ||||
+| `user_profile_id` | `uuid` | references `profiles(id)` on delete cascade | Owner of this transaction (who sees it in ledger) |
+| **Counterparty** ||||
+| `counterparty_profile_id` | `uuid` | references `profiles(id)` on delete set null | Another user involved in transaction |
+| **Attribution** ||||
+| `supporter_id` | `uuid` | references `supporters(id)` on delete set null | Supporter for analytics |
+| `creator_profile_id` | `uuid` | references `profiles(id)` on delete set null | Creator who received support |
+| **Classification** ||||
+| `service_type` | `varchar(20)` | not null, default 'gift' | Type of service (gift, subscription, etc.) |
+| `reference_type` | `reference_type_enum` | not null | Classification of transaction |
+| `direction` | `transaction_direction_enum` | not null | Debit or credit |
+| **Financials** ||||
+| `amount` | `numeric(10,2)` | not null, >= 0 | Total amount (always positive) |
+| `platform_fee` | `numeric(10,2)` | not null, default 0, >= 0 | Platform fee |
+| `net_amount` | `numeric(10,2)` | not null, >= 0 | Amount after fees |
+| **Payment Lifecycle** ||||
+| `status` | `payment_status_enum` | not null | Current status |
+| **Provider Info** ||||
+| `provider` | `provider_enum` | | Payment provider |
+| `provider_transaction_id` | `varchar` | | External transaction ID |
+| **Business Reference** ||||
+| `reference_id` | `uuid` | unique | Links to source tables (coffee_gifts, etc.) |
+| **Wallet** ||||
+| `balance_after` | `bigint` | not null, >= 0 | Balance snapshot after transaction |
+| `wallet_id` | `uuid` | references `wallets(id)` on delete set null | Wallet reference |
+| **Metadata** ||||
+| `metadata` | `jsonb` | not null, default '{}' | Extensible provider-specific data |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `updated_at` | `timestamptz` | default now() | Last update timestamp |
+
+### Constraints
+
+| Constraint | Expression | Description |
+|------------|------------|-------------|
+| `transactions_amount_consistency` | `amount = platform_fee + net_amount` | Ensures amount equals fee + net |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_transactions_user_profile_id` | `user_profile_id` | Fast lookup by user |
+| `idx_transactions_counterparty_profile_id` | `counterparty_profile_id` | Fast lookup by counterparty |
+| `idx_transactions_creator_profile_id` | `creator_profile_id` | Fast lookup by creator |
+| `idx_transactions_supporter_id` | `supporter_id` | Fast lookup by supporter |
+| `idx_transactions_reference_id` | `reference_id` | Fast lookup by reference |
+| `idx_transactions_created_at` | `created_at desc` | Sort by recent transactions |
+| `idx_transactions_status` | `status` | Filter by status |
+| `idx_transactions_provider_tx` | `provider, provider_transaction_id` | Lookup by provider TX |
+| `idx_transactions_service_type` | `service_type` | Filter by service type |
+| `idx_transactions_direction` | `direction` | Filter by debit/credit |
+| `idx_transactions_reference_type` | `reference_type` | Filter by reference type |
+| `idx_transactions_provider` | `provider` | Filter by provider |
+| `idx_transactions_wallet_id` | `wallet_id` | Fast lookup by wallet |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `transactions` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view their own transactions` | `authenticated` | Users can only view their own transactions |
+
+## Triggers
+
+### `on_transaction_updated`
+
+Automatically updates the `updated_at` timestamp when a transaction row is modified.
+
+```sql
+create trigger on_transaction_updated
+  before update on public.transactions
+  for each row
+  execute procedure public.handle_updated_at();
+```
+
+## Notes
+
+- This is a user-centric ledger - each transaction appears from both parties' perspectives
+- `supporter_id` is nullable for payout transactions
+- `reference_id` links to coffee_gifts or other source tables
+- `balance_after` provides point-in-time balance snapshot
+- `metadata` stores provider-specific transaction details
+- Transactions with `wallet_id = NULL` are platform/payment-side only

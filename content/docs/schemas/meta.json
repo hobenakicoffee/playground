@@ -2,5 +2,17 @@
   "title": "DB Schemas",
   "description": "All the database schemas of the backend project.",
   "root": true,
-  "pages": ["profile", "managers"]
+  "pages": [
+    "profile",
+    "managers",
+    "supporters",
+    "wallets",
+    "transactions",
+    "coffee-gifts",
+    "activities",
+    "payments",
+    "payout-methods",
+    "withdrawal-requests",
+    "messaging"
+  ]
 }

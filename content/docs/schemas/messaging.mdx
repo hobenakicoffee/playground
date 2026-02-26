@@ -1,0 +1,153 @@
+---
+title: Messaging Schema
+description: The messaging database schema of the backend project.
+---
+
+## Overview
+
+The messaging schema provides chat functionality with support for direct messages and group conversations. It includes tables for conversations, participants, and messages with automatic timestamp updates.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  CONVERSATIONS ||--o{ CONVERSATION_PARTICIPANTS : "has"
+  CONVERSATIONS ||--o{ MESSAGES : "contains"
+  PROFILES ||--o{ CONVERSATION_PARTICIPANTS : "participates"
+  PROFILES ||--o{ MESSAGES : "sends"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+    text avatar_url
+  }
+
+  CONVERSATIONS {
+    uuid id PK
+    text type
+    text name
+    timestamptz created_at
+    timestamptz last_message_at
+    text last_message_preview
+  }
+
+  CONVERSATION_PARTICIPANTS {
+    uuid conversation_id PK
+    uuid profile_id PK
+    timestamptz last_read_at
+    timestamptz joined_at
+  }
+
+  MESSAGES {
+    bigint id PK
+    uuid conversation_id FK
+    uuid sender_id FK
+    text content
+    timestamptz created_at
+  }
+'
+/>
+
+## Table Structure
+
+### `public.conversations`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `uuid` | PK, default `gen_random_uuid()` | Primary key |
+| **Details** ||||
+| `type` | `text` | not null, default 'direct' | Conversation type: 'direct' or 'group' |
+| `name` | `text` | | Name for group conversations |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+| `last_message_at` | `timestamptz` | | Timestamp of last message |
+| `last_message_preview` | `text` | | Preview of last message (first 100 chars) |
+
+### `public.conversation_participants`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **References** ||||
+| `conversation_id` | `uuid` | references `conversations(id)` on delete cascade | Conversation ID |
+| `profile_id` | `uuid` | references `profiles(id)` on delete cascade | Participant profile ID |
+| **Timestamps** ||||
+| `last_read_at` | `timestamptz` | | Last read timestamp |
+| `joined_at` | `timestamptz` | default now() | Join timestamp |
+
+**Primary Key:** `(conversation_id, profile_id)`
+
+### `public.messages`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `bigserial` | PK | Auto-increment ID |
+| **References** ||||
+| `conversation_id` | `uuid` | references `conversations(id)` on delete cascade | Conversation ID |
+| `sender_id` | `uuid` | references `profiles(id)` on delete cascade | Sender profile ID |
+| **Content** ||||
+| `content` | `text` | not null, max 5000 chars | Message content |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | Creation timestamp |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_messages_conversation_created_at` | `conversation_id, created_at desc` | Fast message retrieval |
+| `idx_conversations_last_message_at` | `last_message_at desc` | Sort conversations by recent |
+| `idx_participants_profile` | `profile_id` | Find user's conversations |
+| `idx_participants_conversation` | `conversation_id` | Find conversation participants |
+
+## Row Level Security (RLS)
+
+RLS is enabled on all three tables.
+
+### Conversations Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view their conversations` | authenticated | Users can only view conversations they participate in |
+
+### Conversation Participants Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view participants of their conversations` | authenticated | View participants in own conversations |
+| `Users can insert themselves as participant` | authenticated | Users can only add themselves |
+
+### Messages Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Users can view messages in their conversations` | authenticated | View messages in own conversations |
+| `Users can send messages in their conversations` | authenticated | Send to own conversations only |
+
+## Triggers
+
+### `trg_update_last_message_at`
+
+Automatically updates the conversation's `last_message_at` and `last_message_preview` when a new message is inserted.
+
+```sql
+create trigger trg_update_last_message_at
+  after insert on public.messages
+  for each row
+  execute function public.update_last_message_at();
+```
+
+#### Behavior
+
+- Updates `last_message_at` to message creation time
+- Updates `last_message_preview` with first 100 characters of message
+
+## Notes
+
+- Supports both direct (1:1) and group conversations
+- Messages are limited to 5000 characters
+- Users can only access conversations they participate in
+- `last_read_at` can be used for unread count calculations
+- Group conversations have a name, direct messages have null name
