@@ -1,0 +1,351 @@
+---
+title: Frequently used supabase commands
+description: Supabase CLI Complete Command Guide
+---
+
+## Installation
+
+Install the Supabase CLI globally:
+
+```bash
+npm install -g supabase
+# or
+brew install supabase/tap/supabase
+```
+
+For more options, see the [official documentation](https://supabase.com/docs/guides/cli).
+
+## Project Initialization
+
+### Initialize a Supabase project
+
+```bash
+supabase init
+```
+
+This creates:
+
+```
+supabase/
+  migrations/
+  config.toml
+```
+
+### Link to a remote Supabase project
+
+```bash
+supabase link --project-ref <project-ref>
+```
+
+Find `project-ref` in: **Supabase Dashboard → Settings → General**
+
+## Local Development
+
+### Start local Supabase stack
+
+Requires Docker to be running.
+
+```bash
+supabase start
+```
+
+### Stop local stack
+
+```bash
+supabase stop
+```
+
+### Check status
+
+```bash
+supabase status
+```
+
+### Reset local database
+
+```bash
+supabase db reset
+```
+
+## Database Commands
+
+### Push migrations to remote
+
+```bash
+supabase db push
+```
+
+Applies all pending migrations to remote.
+
+### Pull remote schema into migration
+
+```bash
+supabase db pull
+```
+
+Creates a new migration file from remote state.
+
+### Diff local vs remote
+
+```bash
+supabase db diff -f update_supporters_table_with_is_monthly_and_metadata_entry
+```
+
+### Dump remote database
+
+```bash
+supabase db dump
+```
+
+### Execute SQL file
+
+```bash
+supabase db execute --file ./file.sql
+```
+
+## Migration Commands
+
+### Create a new migration
+
+```bash
+supabase migration new <name>
+```
+
+Example:
+
+```bash
+supabase migration new create_users_table
+```
+
+### List all migrations
+
+```bash
+supabase migration list
+```
+
+Shows:
+- Local migrations
+- Remote applied migrations
+
+### Repair migration status
+
+Mark as applied:
+
+```bash
+supabase migration repair --local --status applied <timestamp>
+```
+
+Mark as reverted:
+
+```bash
+supabase migration repair --local --status reverted <timestamp>
+```
+
+> **Tip:** Always use `--local` flag when working with a local development environment to avoid applying changes to the remote database.
+>
+> **Warning:** Running without `--local` will apply changes to the remote Supabase project.
+
+## Secrets Management
+
+### Set project secret
+
+```bash
+supabase secrets set KEY=value
+```
+
+### List secrets
+
+```bash
+supabase secrets list
+```
+
+## Edge Functions
+
+### Create new function
+
+```bash
+supabase functions new <function-name>
+```
+
+### Serve locally
+
+```bash
+supabase functions serve
+```
+
+### Deploy function
+
+```bash
+supabase functions deploy <function-name>
+```
+
+### List functions
+
+```bash
+supabase functions list
+```
+
+### Delete function
+
+```bash
+supabase functions delete <function-name>
+```
+
+## Authentication
+
+### Generate JWT secret
+
+```bash
+supabase gen keys
+```
+
+## Storage
+
+### List storage buckets
+
+```bash
+supabase storage list
+```
+
+## Type Generation
+
+Generate TypeScript types from your database schema.
+
+### Local generation
+
+Generate types from your local database schema:
+
+```bash
+supabase gen types typescript --local --schema public > ./src/supabase/types/supabase.ts
+```
+
+### Generate types for different projects
+
+**Local schema:**
+
+| Target | Command |
+|--------|---------|
+| Local app | `supabase gen types typescript --local --schema public > ./src/supabase/types/supabase.ts` |
+| Admin | `supabase gen types typescript --local --schema public > ../admin/types/supabase.ts` |
+| App | `supabase gen types typescript --local --schema public > ../app/src/types/supabase.ts` |
+| Marketing | `supabase gen types typescript --local --schema public > ../marketing/src/types/supabase.ts` |
+| Libraries | `supabase gen types typescript --local --schema public > ../libraries/src/types/supabase.ts` |
+
+**Remote schema (from Supabase cloud):**
+
+| Target | Command |
+|--------|---------|
+| Local app | `supabase gen types typescript --project-id "pxzagwaalzjcrxnjiobr" --schema public > ./src/supabase/types/supabase.ts` |
+| Admin | `supabase gen types typescript --project-id "pxzagwaalzjcrxnjiobr" --schema public > ../admin/types/supabase.ts` |
+| App | `supabase gen types typescript --project-id "pxzagwaalzjcrxnjiobr" --schema public > ../app/src/types/supabase.ts` |
+| Marketing | `supabase gen types typescript --project-id "pxzagwaalzjcrxnjiobr" --schema public > ../marketing/src/types/supabase.ts` |
+| Libraries | `supabase gen types typescript --project-id "pxzagwaalzjcrxnjiobr" --schema public > ../libraries/src/types/supabase.ts` |
+
+## Seed Commands
+
+Database seeding using Snaplet.
+
+### Initialize seed configuration
+
+```bash
+npx @snaplet/seed init
+```
+
+### Sync seed configuration
+
+```bash
+npx @snaplet/seed sync
+```
+
+### Prepare seed SQL
+
+```bash
+bun run seed.ts > supabase/seeds/seed.sql
+```
+
+### Reset and seed database
+
+```bash
+supabase db reset && bun run supabase/seeds/init.ts
+```
+
+## Project Management
+
+### Login
+
+```bash
+supabase login
+```
+
+### Logout
+
+```bash
+supabase logout
+```
+
+### List projects
+
+```bash
+supabase projects list
+```
+
+## Docker Management
+
+### Stop local containers
+
+```bash
+supabase stop
+```
+
+### Remove local containers (no backup)
+
+```bash
+supabase stop --no-backup
+```
+
+## Logs
+
+### View logs
+
+```bash
+supabase logs
+```
+
+## Typical Migration Workflow
+
+```bash
+# 1. Create a new migration
+supabase migration new add_orders_table
+
+# 2. Edit the SQL migration file
+
+# 3. Push to remote
+supabase db push
+```
+
+If remote schema was changed manually (via Dashboard):
+
+```bash
+supabase db pull
+```
+
+If migration history got cleared:
+
+```bash
+supabase migration repair --local --status applied <timestamp>
+```
+
+> **Warning:** Always use `--local` flag. Running without it will apply changes to the remote Supabase project.
+
+## Important Notes
+
+- `db push` applies ALL pending migrations in order.
+- Supabase tracks migrations in:
+  ```
+  supabase_migrations.schema_migrations
+  ```
+- `migration repair` only changes tracking — it does not modify the actual schema.
+
+## Official Documentation
+
+For complete reference, see: https://supabase.com/docs/reference/cli
