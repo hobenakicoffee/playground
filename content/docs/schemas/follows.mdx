@@ -1,0 +1,174 @@
+---
+title: Follows Schema
+description: The follows database schema of the backend project.
+---
+
+## Overview
+
+The follows schema manages follow relationships between users. It tracks who follows whom and automatically maintains follower/following counts on user profiles. Follow activities are also published to the public activity feed.
+
+## Entity Relationship Diagram
+
+<Mermaid
+  chart='
+erDiagram
+  PROFILES ||--o{ FOLLOWS : "followers"
+  PROFILES ||--o{ FOLLOWS : "following"
+
+  PROFILES {
+    uuid id PK
+    text username
+    text display_name
+    bigint follower_count
+    bigint following_count
+  }
+
+  FOLLOWS {
+    bigint id PK
+    uuid follower_id FK
+    uuid following_id FK
+    timestamptz created_at
+  }
+'
+/>
+
+## Table Structure
+
+### `public.follows`
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| **Identity** ||||
+| `id` | `bigint` | PK, generated always as identity | Auto-increment primary key |
+| **Follow Relationship** ||||
+| `follower_id` | `uuid` | references `profiles(id)` on delete cascade, not null | The user who is following |
+| `following_id` | `uuid` | references `profiles(id)` on delete cascade, not null | The user being followed |
+| **Timestamps** ||||
+| `created_at` | `timestamptz` | default now() | When the follow occurred |
+
+### Constraints
+
+| Constraint | Expression | Description |
+|------------|------------|-------------|
+| `follows_unique_follower_following` | `(follower_id, following_id)` | Ensures unique follow relationship |
+| `follows_no_self_follow` | `follower_id != following_id` | Prevents self-following |
+
+## Indexes
+
+| Index Name | Column(s) | Purpose |
+|------------|-----------|---------|
+| `idx_follows_follower_id` | `follower_id` | Fast lookup of user's following list |
+| `idx_follows_following_id` | `following_id` | Fast lookup of user's followers list |
+
+## Row Level Security (RLS)
+
+RLS is enabled on the `follows` table with the following policies:
+
+### Select Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Anyone can read follows` | `anon` | Public read access for follower/following counts |
+| `Authenticated users can read follows` | `authenticated` | Public read access for logged-in users |
+
+### Insert Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Authenticated users can create follows` | `authenticated` | Users can only follow others, not themselves |
+
+### Delete Policies
+
+| Policy Name | Role | Description |
+|-------------|------|-------------|
+| `Follower can delete their own follow` | `authenticated` | Only the follower can unfollow |
+
+## Helper Functions
+
+### `public.follow_user(target_user_id uuid)`
+
+Allows the current user to follow a target user.
+
+```sql
+select public.follow_user('target-user-uuid');
+```
+
+### `public.unfollow_user(target_user_id uuid)`
+
+Allows the current user to unfollow a target user.
+
+```sql
+select public.unfollow_user('target-user-uuid');
+```
+
+### `public.is_following(target_user_id uuid)`
+
+Checks if the current user is following the target user. Returns `true` or `false`.
+
+```sql
+select public.is_following('target-user-uuid');
+```
+
+### `public.get_followers(target_user_id uuid)`
+
+Returns a set of UUIDs representing all users who follow the target user.
+
+```sql
+select * from public.get_followers('target-user-uuid');
+```
+
+### `public.get_following(target_user_id uuid)`
+
+Returns a set of UUIDs representing all users that the target user follows.
+
+```sql
+select * from public.get_following('target-user-uuid');
+```
+
+### `public.toggle_follow(target_user_id uuid)`
+
+Toggles the follow status. Returns `true` if now following, `false` if unfollowed.
+
+```sql
+select public.toggle_follow('target-user-uuid');
+```
+
+## Triggers
+
+### `on_follow_created`
+
+Automatically executed after a new follow is created:
+
+1. Increments `following_count` for the follower
+2. Increments `follower_count` for the user being followed
+3. Creates a public activity entry for the follow
+
+```sql
+create trigger on_follow_created
+  after insert on public.follows
+  for each row
+  execute procedure public.handle_follow();
+```
+
+### `on_follow_deleted`
+
+Automatically executed after a follow is deleted (unfollow):
+
+1. Decrements `following_count` for the follower
+2. Decrements `follower_count` for the user being unfollowed
+3. Creates a private activity entry for the unfollow
+
+```sql
+create trigger on_follow_deleted
+  after delete on public.follows
+  for each row
+  execute procedure public.handle_unfollow();
+```
+
+## Notes
+
+- Users cannot follow themselves (enforced by constraint and RLS)
+- Follow relationships are unique per follower-following pair
+- Follower and following counts are automatically maintained via triggers
+- Follow activities are published to the public activity feed
+- Unfollow activities are kept private (only visible to the unfollowed user)

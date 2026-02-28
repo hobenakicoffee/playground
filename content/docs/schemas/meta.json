@@ -13,6 +13,7 @@
     "payments",
     "payout-methods",
     "withdrawal-requests",
-    "messaging"
+    "messaging",
+    "follows"
   ]
 }
