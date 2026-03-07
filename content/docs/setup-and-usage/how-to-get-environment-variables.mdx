@@ -1,0 +1,128 @@
+---
+title: How to Get Environment Variables
+description: Learn how to setup and manage environment variables using Dotenvx
+---
+
+This guide explains how to set up and manage environment variables in your project using Dotenvx for encryption and security.
+
+> **Hint:** Ask your tech lead or team lead for the `.env.keys` file before running any of the commands below.
+
+## Installation
+
+First, install the `@hobenakicoffee/libraries` package:
+
+```bash
+npm install @hobenakicoffee/libraries
+# or
+pnpm add @hobenakicoffee/libraries
+# or
+yarn add @hobenakicoffee/libraries
+# or
+bun add @hobenakicoffee/libraries
+```
+
+Then install `@dotenvx/dotenvx` as a dev dependency:
+
+```bash
+npm install -D @dotenvx/dotenvx
+# or
+pnpm add -D @dotenvx/dotenvx
+# or
+yarn add -D @dotenvx/dotenvx
+# or
+bun add -D @dotenvx/dotenvx
+```
+
+## Add Scripts
+
+Add the following scripts to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "check:env": "bun run node_modules/@hobenakicoffee/libraries/src/scripts/check-env-encryption.ts",
+    "encrypt": "dotenvx encrypt",
+    "decrypt": "dotenvx decrypt",
+    "encrypt:production": "dotenvx encrypt --env-file=.env.production",
+    "decrypt:production": "dotenvx decrypt --env-file=.env.production"
+  }
+}
+```
+
+## Update Pre-commit Hook
+
+Configure your pre-commit hook to run `check:env` script to ensure environment variables are properly encrypted before committing.
+
+### Lefthook Example
+
+If you're using [lefthook](https://github.com/evilmartians/lefthook), add this to your `lefthook.yml`:
+
+```yaml
+pre-commit:
+  jobs:
+    - run: bun run check:env  👈
+    - run: bun x ultracite fix
+      glob:
+        - "**/*.js"
+        - "**/*.jsx"
+        - "**/*.ts"
+        - "**/*.tsx"
+        - "**/*.json"
+        - "**/*.jsonc"
+        - "**/*.css"
+      stage_fixed: true
+```
+
+## Usage
+
+### Encrypt Environment Variables
+
+To encrypt your `.env` file:
+
+```bash
+npm run encrypt
+# or
+bun run encrypt
+```
+
+For production environment `.env.production` file:
+
+```bash
+npm run encrypt:production
+# or
+bun run encrypt:production
+```
+
+### Decrypt Environment Variables
+
+To decrypt your `.env` file:
+
+```bash
+npm run decrypt
+# or
+bun run decrypt
+```
+
+For production environment:
+
+```bash
+npm run decrypt:production
+# or
+bun run decrypt:production
+```
+
+### Check Environment Encryption
+
+Run the check script to verify environment variables are encrypted:
+
+```bash
+npm run check:env
+# or
+bun run check:env
+```
+
+## Important Notes
+
+- Never commit unencrypted `.env` files to your repository
+- Always use the encrypt script before committing changes to environment files
+- The `check:env` script should pass in your pre-commit hook to prevent accidental commits of unencrypted variables
