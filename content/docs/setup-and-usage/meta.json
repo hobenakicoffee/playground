@@ -1,0 +1,9 @@
+{
+	"title": "Setup & Usage",
+	"description": "All about the setup and usage of Hobenakicoffee projects, libraries, and its ecosystem.",
+	"root": true,
+	"pages": [
+		"how-to-get-environment-variables",
+		"all-about-hobenakicoffee-libraries-package"
+	]
+}
