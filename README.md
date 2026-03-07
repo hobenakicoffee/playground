@@ -11,6 +11,7 @@ This is a Next.js 16.1.6 documentation site built with [Fumadocs](https://github
 - **TypeScript** with strict mode
 - **Radix UI** components
 - **@hugeicons/react** for icons
+- **@hugeicons/core-free-icons** for icons
 - **lucide-react** for icons
 - **recharts** for charts
 - **mermaid** for diagrams
@@ -21,6 +22,7 @@ This is a Next.js 16.1.6 documentation site built with [Fumadocs](https://github
 - **sonner** for toast notifications
 - **tw-animate-css** for animations
 - **vaul** for drawer components
+- **react-day-picker** for date picking
 
 ## Getting Started
 
@@ -60,13 +62,19 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── (home)/             # Landing page route group
 │   ├── docs/               # Documentation layout and pages
+│   │   ├── [[...slug]]/    # Catch-all route for docs
+│   │   └── layout.tsx      # Docs layout
 │   ├── api/                # API routes
+│   │   └── search/         # Search API
 │   ├── llms.txt/           # LLMs routes
+│   ├── llms-full.txt/      # LLMs full routes
+│   ├── llms.mdx/           # LLMs MDX routes
 │   ├── og/                 # Open Graph image generation
 │   └── *.tsx               # Page components
 ├── components/             # React components
 │   ├── ai/                 # AI-related components
-│   └── mdx/                # MDX custom components
+│   ├── mdx/                # MDX custom components
+│   └── preview.tsx         # Preview component
 ├── lib/                    # Utility functions
 │   ├── cn.ts              # Class name merging
 │   ├── source.ts          # Fumadocs source config
@@ -97,6 +105,35 @@ Documentation is written in MDX and stored in `content/docs/`. The site uses Fum
 - Navigation
 - Search
 - Mermaid diagrams
+
+## @hobenakicoffee/libraries
+
+This project uses `@hobenakicoffee/libraries` (v1.12.0) which provides:
+
+### Entry Points
+
+| Entrypoint | Description |
+| ---------- | ------------ |
+| `@hobenakicoffee/libraries` | Main entry (constants) |
+| `@hobenakicoffee/libraries/constants` | Constants and types |
+| `@hobenakicoffee/libraries/utils` | Utility functions |
+| `@hobenakicoffee/libraries/types` | TypeScript types |
+| `@hobenakicoffee/libraries/moderation` | Content moderation |
+| `@hobenakicoffee/libraries/providers/theme-provider` | Theme provider |
+| `@hobenakicoffee/libraries/lib/utils` | Class merging utilities |
+| `@hobenakicoffee/libraries/components/*` | UI components |
+
+### UI Components
+
+Accessible components built on Radix UI: alert, alert-dialog, avatar, badge, breadcrumb, button, button-group, calendar, card, chart, checkbox, dialog, drawer, dropdown-menu, empty, empty-minimal, field, input, input-group, input-otp, item, label, popover, radio-group, select, separator, sheet, sidebar, skeleton, sonner, spinner, table, tabs, textarea, toggle, toggle-group, tooltip.
+
+### Constants
+
+`Visibility`, `productInfo`, `companyInfo`, `PaymentTypes`, `PaymentStatuses`, `PaymentProviders`, `PaymentDirections`, `SupporterPlatforms`, `ServiceTypes`
+
+### Utilities
+
+`checkModeration`, `formatAmount`, `formatSignedAmount`, `formatDate`, `formatNumber`, `formatToPlainText`, `getSocialHandle`, `getSocialUrl`, `getUserNameInitials`, `getUserPageLink`, `openInNewWindow`, `shareToFacebook`, `shareToInstagram`, `shareToLinkedIn`, `shareToX`, `printQrSvg`, `toHumanReadable`, `validatePhoneNumber`
 
 ## Learn More
 

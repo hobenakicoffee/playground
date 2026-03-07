@@ -1,36 +1,27 @@
-# Agent Guidelines
+# Playground (Docs)
 
 ## Stack
-- Next.js 16.1.6 + App Router
-- TypeScript (strict)
-- Tailwind CSS 4
-- Fumadocs (MDX docs)
-- Biome (lint/format)
+Next.js 16.1.6, TypeScript, Tailwind 4, Fumadocs
 
 ## Commands
 ```bash
-npm run dev        # dev server
-npm run build      # production build
-npm run lint       # biome check
-npm run format     # biome format --write
-npm run types:check # tsc + fumadocs
+npm run dev      # dev
+npm run build    # prod
+npm run lint     # biome
+npm run format   # biome format
+npm run types:check
 ```
 
 ## Rules
-- Use `@/` for absolute imports
-- Server Components by default; add `"use client"` only when needed
-- Use `cn()` from `@/lib/cn` for conditional classes
-- Avoid `any`; use `unknown` if uncertain
-- Run `npm run lint && npm run types:check` before completing tasks
+- `@/` for imports
+- Server Components by default
+- `cn()` from `@/lib/cn`
+- No `any`
 
 ## Structure
 ```
-src/app/         # pages, api routes
-src/components/  # React components
-src/lib/         # utilities (cn.ts, utils.ts, source.ts)
-content/docs/    # MDX documentation
+src/app/       # pages, api
+src/components/
+src/lib/
+content/docs/  # MDX
 ```
-
-## Docs
-- MDX in `content/docs/` with frontmatter (title, description)
-- Add `meta.json` in folder for navigation
