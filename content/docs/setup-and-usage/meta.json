@@ -8,6 +8,8 @@
     "hobenaki-coffee-admin",
     "hobe-naki-coffee-app",
     "hobenaki-coffee-backend",
-    "hobenaki-coffee-cost-calculator"
+    "hobenaki-coffee-cost-calculator",
+    "hobenaki-coffee-marketing",
+    "hobenaki-coffee-playground"
   ]
 }
