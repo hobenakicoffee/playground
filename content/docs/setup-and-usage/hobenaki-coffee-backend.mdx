@@ -1,0 +1,197 @@
+---
+title: HobenaKICoffee Backend
+description: A TypeScript backend for HobenaKICoffee built with Bun, PostgreSQL, and Supabase.
+---
+
+A TypeScript backend for HobenaKICoffee built with Bun, PostgreSQL, and Supabase.
+
+## Tech Stack
+
+- **Runtime**: Bun
+- **Database**: PostgreSQL with Supabase
+- **Language**: TypeScript (strict mode)
+- **Database Seeding**: Snaplet Seed
+- **Package Manager**: Bun
+
+## Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) installed
+- PostgreSQL database (local or Supabase)
+- Environment variables configured
+
+### Installation
+
+```bash
+# Install dependencies
+bun install
+
+# Copy environment template
+cp .env.example .env
+```
+
+### Environment Setup
+
+Create a `.env` file with the following variables:
+
+```bash
+SUPABASE_PROJECT_ID=your_project_id
+SEED_DATABASE_URL=postgresql://user:pass@host:port/db
+NEON_DATABASE_URL=postgresql://user:pass@host:port/db
+```
+
+### Development
+
+```bash
+# Start development server with hot reload
+bun dev
+
+# Run type checking
+bun run typecheck
+
+# Run linting with Ultracite
+bun run lint
+
+# Format code with Ultracite
+bun x ultracite fix
+
+# Clean build artifacts
+bun run clean
+```
+
+## Seeding
+
+The project uses [Snaplet Seed](https://docs.snaplet.dev/seed) for database seeding with mock data.
+
+```bash
+# Initialize Snaplet seed configuration
+bun run db:seed:init
+
+# Sync seed configuration with database schema
+bun run db:seed:sync
+
+# Seed database with mock data (destructive!)
+bun run db:seed
+```
+
+## Database Operations
+
+### Type Generation
+
+```bash
+# Generate types from local database
+bun run supabase:gen:types:local
+
+# Generate types from remote Supabase project
+bun run supabase:gen:types:remote
+```
+
+### Database Migration Workflow
+
+**Important: Use supabase db diff, Not Hand-Coding**
+
+Never hand-code migration files directly in `supabase/migrations/`. Instead:
+
+1. **Make Changes**: Edit schema files in `supabase/schemas/` directory
+2. **Generate Migration**: Run `supabase db diff` to automatically create migration
+3. **Review Generated Migration**: Check the generated migration file
+4. **Apply Migration**: Use `supabase db push` or your preferred deployment method
+
+**Schema File Organization:**
+
+- **`supabase/schemas/`**: Contains schema definitions (edit these)
+- **`supabase/migrations/`**: Contains auto-generated migrations (don't edit manually)
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   └── types/           # Generated TypeScript types
+├── supabase/
+│   ├── migrations/      # Database migrations
+│   ├── seeds/          # Seed data and constants
+│   └── schemas/        # Database schemas
+├── .github/prompts/    # Development guides and prompts
+├── seed.ts            # Database seeding script
+├── seed.config.ts     # Snaplet seed configuration
+└── env.d.ts           # Environment variable types
+```
+
+## Database Schema
+
+The project uses a coffee gifting/support platform schema with tables for:
+
+- `profiles` - User profiles
+- `supporters` - People who support creators
+- `transactions` - Financial transactions
+- `activities` - User activities and events
+- `coffee_gifts` - Coffee gift records
+- `wallets` - User wallet balances
+
+## Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `bun dev` | Start development server with hot reload |
+| `bun run typecheck` | Run type checking |
+| `bun run lint` | Run linting with Ultracite |
+| `bun x ultracite fix` | Format code with Ultracite |
+| `bun run clean` | Clean build artifacts |
+| `bun run db:seed:init` | Initialize Snaplet seed configuration |
+| `bun run db:seed:sync` | Sync seed configuration with database schema |
+| `bun run db:seed` | Seed database with mock data |
+| `bun run supabase:gen:types:local` | Generate types from local database |
+| `bun run supabase:gen:types:remote` | Generate types from remote Supabase project |
+
+## Development Guidelines
+
+- Always run `bun run typecheck` and `bun run lint` before committing
+- Use `bun x ultracite fix` to automatically fix formatting and linting issues
+- Follow the PostgreSQL style guide in `.github/prompts/postgres-sql-style-guide.prompt.md`
+- Use snake_case for database tables and columns
+- TypeScript strict mode is enabled
+- No test framework is currently configured
+
+## API Development
+
+When adding API endpoints:
+
+1. Create TypeScript types in `src/types/`
+2. Update database schema if needed
+3. Generate new types: `bun run supabase:gen:types:local`
+4. Update seed data if required
+
+## Supabase
+
+Necessary Supabase configuration for local development:
+
+| Tool | URL |
+|------|-----|
+| Studio | http://127.0.0.1:54323 |
+| Mailpit | http://127.0.0.1:54324 |
+| MCP | http://127.0.0.1:54321/mcp |
+
+| API | URL |
+|-----|-----|
+| Project URL | http://127.0.0.1:54321 |
+| REST | http://127.0.0.1:54321/rest/v1 |
+| GraphQL | http://127.0.0.1:54321/graphql/v1 |
+| Edge Functions | http://127.0.0.1:54321/functions/v1 |
+
+Fill the other envs on the `.env.local` file as per your local Supabase setup. For more details, refer to the [Supabase documentation](https://supabase.com/docs/guides/local-development).
+
+For generating declarative database schema, follow this link: [Supabase DB Schema Generation](https://supabase.com/docs/guides/local-development/declarative-database-schemas).
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run type checking: `bun run typecheck`
+5. Submit a pull request
+
+## License
+
+Private project - All rights reserved.

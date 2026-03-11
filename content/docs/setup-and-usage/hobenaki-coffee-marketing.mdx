@@ -1,0 +1,117 @@
+---
+title: HobeNakiCoffee Marketing
+description: Marketing site for HobeNakiCoffee built with Astro (SSR) and React.
+---
+
+Marketing site for HobeNakiCoffee built with Astro (SSR) and React.
+
+## Prerequisites
+
+- Node.js (use the version your package manager expects)
+- npm
+
+## Install
+
+```bash
+npm install
+```
+
+## Local development
+
+```bash
+npm run dev
+```
+
+The dev server runs via Astro; the terminal shows the local URL.
+
+## Build & Preview
+
+```bash
+npm run build
+npm run preview
+```
+
+## Formatting & linting
+
+This project uses the Ultracite Biome preset via helper scripts in `package.json`.
+
+```bash
+npm run format        # auto-fix formatting
+npm run format:check  # check formatting
+npm run format:doctor # diagnose formatting setup
+```
+
+## Git hooks
+
+Lefthook is used to run formatting before commits. Install hooks with:
+
+```bash
+npm run lefthook:setup
+```
+
+## Tech Stack
+
+- **Framework**: Astro 5.16.6 with React 19
+- **Styling**: Tailwind CSS v4.1.18 with shadcn/ui components
+- **Deployment**: Cloudflare Pages (SSR mode)
+- **Database**: Supabase (@supabase/ssr)
+- **State Management**: Nanostores
+- **Internationalization**: Paraglide for i18n support (inlang CLI)
+- **Icons**: Huge Icons (@hugeicons/react) + Lucide (@lucide/astro)
+- **Forms**: @tanstack/react-form with Zod validation
+- **Email**: Resend for transactional emails
+- **CAPTCHA**: Cloudflare Turnstile via @marsidev/react-turnstile
+
+## Helpful Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build (includes i18n compilation) |
+| `npm run preview` | Preview built site with Wrangler |
+| `npm run format` | Auto-fix formatting |
+| `npm run format:check` | Check formatting |
+| `npm run format:doctor` | Diagnose formatting setup |
+| `npm run lefthook:setup` | Install Git hooks |
+| `npm run supabase:types:gen` | Generate TypeScript types from Supabase schema |
+| `npm run machine-translate` | Machine translate content via inlang |
+
+## Project Layout
+
+```
+src/
+├── pages/              # Astro route pages and user profile routes (@handle/)
+├── components/         # Reusable UI components (ui/, auth/, icons/, common/)
+├── layouts/           # Astro layouts (layout.astro, content.astro)
+├── lib/               # Core utilities (Supabase clients, Resend, Turnstile)
+├── actions/           # Astro Actions for server-side functions
+├── stores/            # Nanostores for client-side state
+├── hooks/             # React hooks (useUser)
+├── services/          # Service layer for data fetching
+├── styles/            # Global CSS
+├── paraglide/         # Generated i18n files
+└── project.inlang/    # Internationalization configuration
+```
+
+## Auth & Backend Notes
+
+- Authentication uses Supabase (OTP/email); see `src/lib/db.ts` and `src/lib/db.client.ts`.
+- Environment types live in `src/env.d.ts`; add runtime values to a local `.env` file as needed.
+- Server actions are defined in `src/actions/` (auth.ts, contact-us.ts).
+
+## Deployment
+
+The project is configured for SSR output (Astro `server` mode) and can be deployed to Cloudflare Pages / Workers (see `wrangler.jsonc` and `astro.config.mjs`).
+
+## Contributing
+
+- Create feature branches from `main` and open pull requests targeting `main`.
+- Run `npm run format` before committing to satisfy lint/format hooks.
+
+## Where to Look First
+
+- UI components: `src/components/`
+- Page layouts & routes: `src/layouts/` and `src/pages/`
+- Server actions: `src/actions/`
+- Utilities: `src/lib/` and `src/utils/`
+- Build & scripts: `package.json`

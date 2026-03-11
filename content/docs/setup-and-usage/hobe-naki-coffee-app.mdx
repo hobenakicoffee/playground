@@ -1,0 +1,180 @@
+---
+title: Hobe Naki Coffee App
+description: A modern web application for the "হবে নাকি Coffee?" platform - Bangladesh's premier support and monetization platform.
+---
+
+## Overview
+
+A modern web application for the "হবে নাকি Coffee?" platform - Bangladesh's premier support and monetization platform for creators, freelancers, and small businesses.
+
+## About the Project
+
+"হবে নাকি Coffee?" (Will it be Coffee?) is a hassle-free platform where anyone can start their online business or income stream without worrying about legal paperwork, company formation, or complex setups. Simply share a link, and supporters can send you "Coffee" (tips/donations) or purchase your exclusive content, digital products, merchandise, shoutouts, or services.
+
+### Key Features
+
+- **Simple Support Links**: Create and share payment links instantly
+- **Multiple Monetization Options**:
+  - One-time tips/donations
+  - Exclusive content access
+  - Digital product sales
+  - Merchandise
+  - Personal shoutouts
+  - Service offerings
+  - Membership subscriptions
+- **Secure Authentication**: Email + OTP verification
+- **Dashboard Management**: Analytics, transactions, supporters, wallet
+- **Settings**: Profile, page customization, appearance, thank-you messages
+- **Mobile-First Design**: Responsive interface built with modern UI components
+- **Bilingual Support**: English and Bangla localization
+
+### Target Audience
+
+- Content creators and influencers
+- Freelancers and service providers
+- Small business owners
+- Community organizers
+- Event organizers
+- Charity initiatives
+- Anyone with personal goals seeking support
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript
+- **Build Tool**: Vite
+- **Routing**: TanStack Router
+- **Data Fetching**: TanStack Query (with Supabase cache helpers)
+- **Database**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS v4
+- **UI Components**: shadcn/ui, Radix UI
+- **Forms**: TanStack React Form with Zod validation
+- **Tables**: TanStack Table
+- **Icons**: @hugeicons/react, @hugeicons/core-free-icons, Tabler Icons
+- **Animations**: Motion
+- **URL State**: nuqs
+- **Internationalization**: intlayer
+- **Theming**: next-themes
+- **Code Quality**: Biome (via Ultracite preset)
+- **Deployment**: Cloudflare Pages
+- **Development**: lefthook for git hooks
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Bun (recommended) or npm/yarn
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/hobenakicoffee/app.git
+cd app
+```
+
+2. Install dependencies:
+
+```bash
+bun install
+# or
+npm install
+```
+
+3. Start the development server:
+
+```bash
+bun run dev
+# or
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+### Available Scripts
+
+- `dev` - Start development server with intlayer
+- `build` - Build for production
+- `preview` - Preview production build locally
+- `preview:wrangler` - Preview on Cloudflare Pages locally
+- `format` - Format code with Ultracite
+- `format:check` - Check code formatting
+- `format:doctor` - Diagnose formatting setup
+- `prepare` - Install git hooks (runs automatically)
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── common/         # Shared common components
+│   ├── icons/          # Icon components
+│   ├── providers/      # React context providers
+│   └── ...
+├── routes/             # TanStack Router routes
+│   ├── (app)/          # Protected app routes
+│   │   ├── _authenticated/    # Authenticated routes (dashboard, wallet, etc.)
+│   │   └── _settings/          # Settings routes
+│   ├── (auth)/         # Authentication routes
+│   └── __root.tsx      # Root layout
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions
+├── services/           # Service layer (data fetching)
+├── constants/          # App constants and configuration
+├── types/              # TypeScript type definitions
+├── nuqs/               # URL state management
+└── assets/            # Static assets
+```
+
+## Code Quality
+
+This project uses **Ultracite**, a zero-config Biome preset that enforces strict code quality standards. Key principles:
+
+- **Type Safety**: Explicit types, prefer `unknown` over `any`
+- **Modern JavaScript**: Arrow functions, destructuring, optional chaining
+- **Accessibility**: Semantic HTML, ARIA attributes, keyboard navigation
+- **Performance**: Efficient React patterns, proper image optimization
+- **Security**: Input validation, safe practices
+
+### Pre-commit Hooks
+
+Git hooks automatically format code on commit using lefthook and Ultracite.
+
+## Deployment
+
+The application is deployed on Cloudflare Pages at `app.hobenakicoffee.com`.
+
+### Local Cloudflare Preview
+
+```bash
+bun run preview:wrangler
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes following the code standards
+4. Run formatting: `bun run format`
+5. Commit your changes
+6. Push to your fork and create a pull request
+
+## License
+
+This project is proprietary software owned by Shamscorner LLC.
+
+## Contact
+
+- **Company**: Shamscorner LLC
+- **Email**: mail@shamscorner.com
+- **Phone**: +1(817) 973-7285
+- **Website**: https://www.shamscorner.com
+- **X (Twitter)**: [@shamscorner_llc](https://www.x.com/shamscorner_llc)
+
+---
+
+**"চিন্তা ছাড়া আয়, শুরু করো তাই — হবে নাকি Coffee, ঝামেলা সব ছাই!"**
+
+*Start earning without worries — "হবে নাকি Coffee?", all hassle goes to ashes!*

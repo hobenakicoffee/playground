@@ -1,0 +1,111 @@
+---
+title: Hobenaki Coffee Cost Calculator
+description: A small interactive calculator for estimating creator earnings across multiple revenue segments.
+---
+
+A small interactive calculator for estimating creator earnings across multiple revenue segments (coffee, subscriptions, sessions, and content sales). Built for Hobenaki Coffee using React, TypeScript, Vite and Tailwind.
+
+## Features
+
+- Interactive inputs for supporters, subscriptions, sessions and content sales
+- Per-segment breakdown (gross, platform fee, gateway fee, creator net)
+- Internationalization: English and Bengali
+- Hidden admin gate (configurable via `VITE_ADMIN_PATH`)
+
+## Tech Stack
+
+- React 19 + TypeScript
+- Vite (Rolldown) as the dev server and build tool
+- Tailwind CSS 4 for styling
+- React Router DOM 7 for routing
+- ESLint for linting
+
+## Quick Start
+
+### Prerequisites
+
+Node 18+ and npm (or Yarn/PNPM).
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run development server with HMR
+
+```bash
+npm run dev
+```
+
+### Build for production
+
+```bash
+npm run build
+```
+
+### Preview the production build locally
+
+```bash
+npm run preview
+```
+
+### Lint the project
+
+```bash
+npm run lint
+```
+
+## Environment
+
+- `VITE_ADMIN_PATH` — optional environment variable to set a custom path for the hidden admin gate. Default fallback used in code: `/hidden-admin-portal-123`.
+
+Add other env vars to a `.env` file at project root as needed.
+
+## Project Structure
+
+```
+src/
+├── App.tsx                    # Main app component with routing
+├── components/
+│   ├── CostCalculator.tsx    # Main calculator UI and segment cards
+│   ├── admin/                # Admin pages
+│   │   ├── AdminLogin.tsx
+│   │   ├── AdminGate.tsx
+│   │   └── AdminDashboard.tsx
+│   └── ui/                   # Reusable UI primitives
+│       ├── Card.tsx
+│       ├── InputField.tsx
+│       ├── NumberField.tsx
+│       ├── SegmentedControl.tsx
+│       └── StatRow.tsx
+├── constants/
+│   └── cost.ts               # Default fee constants
+├── utils/
+│   ├── cost.ts               # Calculation helpers
+│   │   ├── calculateCreatorSegments
+│   │   └── sumCreatorNet
+│   ├── format.ts             # Currency formatting utilities
+│   └── adminAuth.ts          # Admin authentication utilities
+├── i18n/
+│   └── i18n.tsx              # Simple i18n hook and translations
+└── vite.config.ts            # Vite + React + Tailwind setup
+```
+
+## Notes
+
+- The app shows amounts formatted in BDT (Bangladeshi Taka). Currency formatting is performed in `src/utils/format.ts`.
+- Routes: the calculator is mounted at `/`. The admin route is a hidden path controlled by `VITE_ADMIN_PATH`.
+
+## Admin Access
+
+Visit `<your-app-url>/_hobenaki_admin_7f3c2a` to access the admin login. Use the configured credentials to log in and access admin features.
+
+## Contributing
+
+1. Open a PR with a clear description and small commits
+2. Run `npm run lint` before submitting
+
+## License
+
+Please check repository owner for licensing. If none provided, ask the maintainer.

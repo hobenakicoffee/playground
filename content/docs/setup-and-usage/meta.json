@@ -4,6 +4,12 @@
   "root": true,
   "pages": [
     "how-to-get-environment-variables",
-    "all-about-hobenakicoffee-libraries-package"
+    "all-about-hobenakicoffee-libraries-package",
+    "hobenaki-coffee-admin",
+    "hobe-naki-coffee-app",
+    "hobenaki-coffee-backend",
+    "hobenaki-coffee-cost-calculator",
+    "hobenaki-coffee-marketing",
+    "hobenaki-coffee-playground"
   ]
 }

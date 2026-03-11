@@ -1,0 +1,206 @@
+---
+title: Hobenaki Coffee Admin
+description: A modern admin dashboard for managing Hobenaki Coffee operations.
+---
+
+## Overview
+
+A modern admin dashboard for managing Hobenaki Coffee operations, built with Next.js 16.1.6, React 19, and Ultracite.
+
+## Features
+
+### Core Functionality
+
+- **User Management**: View, create, and manage user accounts with role-based access control
+- **Transaction Oversight**: Monitor and manage all financial transactions
+- **Wallet Management**: Handle user wallets and withdrawal requests
+- **Membership Administration**: Manage coffee membership subscriptions
+- **Activity Tracking**: Comprehensive audit logs and activity monitoring
+- **Coffee Gifts**: Manage coffee gift features and redemptions
+- **Manager Access**: Granular permission system for admin managers
+
+### Technical Features
+
+- **Secure Authentication**: OTP-based authentication with Supabase
+- **Modern UI**: Built with shadcn/ui components and Radix UI primitives
+- **Dark Mode**: Complete dark/light theme support
+- **Responsive**: Mobile-first responsive design
+- **Performance**: Optimized with Next.js 16.1.6 App Router and React 19
+- **Type Safety**: Full TypeScript coverage with strict configuration
+
+## Tech Stack
+
+- **Framework**: Next.js 16.1.6 with App Router
+- **UI**: React 19 + Tailwind CSS 4 + shadcn/ui
+- **Database**: Supabase (PostgreSQL) + Prisma ORM
+- **Authentication**: Supabase Auth with OTP
+- **Forms**: TanStack React Form + Zod validation
+- **State Management**: Nuqs for URL state management
+- **Styling**: Tailwind CSS with custom theme system
+- **Code Quality**: Ultracite (Biome) for linting and formatting
+- **Icons**: Lucide React
+- **Deployment**: OpenNext for Cloudflare deployment
+
+## Prerequisites
+
+- **Bun**: Package manager and runtime (recommended)
+- **Supabase**: Local Supabase instance for development
+
+## Quick Start
+
+### 1. Clone and Install
+
+```bash
+git clone <repository-url>
+cd hobenaki-admin
+bun install
+```
+
+### 2. Environment Setup
+
+Copy the environment file and configure your variables:
+
+```bash
+cp .env.example .env
+```
+
+Required environment variables:
+
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SECRET_KEY=your_secret_key
+NEXT_PUBLIC_SUPABASE_COOKIE_NAME=your_cookie_name
+NEXT_PUBLIC_SUPABASE_COOKIE_HOST="localhost"
+NEXT_PUBLIC_SUPABASE_COOKIE_SECURE="false"
+
+# Marketing
+NEXT_PUBLIC_MARKETING_PAGE_URL=https://test.hobenakicoffee.com
+```
+
+### 3. Start Development
+
+```bash
+bun run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to access the admin dashboard.
+
+## Available Scripts
+
+### Development
+
+- `bun run dev` - Start Next.js development server
+- `bun run build` - Build for production
+- `bun run start` - Start production server
+
+### Code Quality
+
+- `bun x ultracite fix` - Auto-format and fix linting issues (Ultracite)
+- `bun x ultracite check` - Lint and type checking without fixing
+
+### Deployment (Cloudflare)
+
+- `bun run preview` - Build and preview Cloudflare deployment
+- `bun run deploy` - Deploy to Cloudflare
+- `bun run cf-typegen` - Generate Cloudflare types
+
+## Project Structure
+
+```
+├── app/                    # Next.js App Router
+│   ├── (protected)/       # Protected admin routes
+│   │   ├── users/         # User management
+│   │   ├── transactions/  # Transaction management
+│   │   ├── wallets/        # Wallet management
+│   │   ├── managers/       # Manager permissions
+│   │   └── ...
+│   ├── auth/              # Authentication pages
+│   └── globals.css        # Global styles
+├── components/
+│   ├── ui/                # shadcn/ui components
+│   └── mode-toggle.tsx    # Theme switcher
+├── lib/
+│   ├── auth/              # Authentication utilities
+│   ├── supabase/          # Supabase client configuration
+│   └── utils.ts           # Utility functions
+├── hooks/                 # Custom React hooks
+└── types/                 # TypeScript type definitions
+```
+
+## Authentication
+
+The application uses a secure OTP-based authentication system:
+
+1. **Email Login**: Users enter their email address
+2. **OTP Verification**: One-time password sent via email
+3. **Session Management**: Secure session handling with Supabase
+4. **Role-Based Access**: Admin role verification for protected routes
+
+### Authentication Architecture
+
+- **Server Actions**: Secure server-side authentication logic
+- **Rate Limiting**: Built-in protection against brute force attacks
+- **Audit Logging**: Comprehensive logging of authentication events
+- **Row Level Security**: Supabase RLS policies for data protection
+
+## UI Components
+
+Built with a modern component library:
+
+- **shadcn/ui**: High-quality, accessible components
+- **Radix UI**: Unstyled, accessible primitives
+- **Lucide React**: Beautiful icon system
+- **Tailwind CSS**: Utility-first styling with custom theme
+- **Class Variance Authority**: Component variant management
+- **Sonner**: Toast notifications
+- **tw-animate-css**: CSS animations
+- **@hobenakicoffee/libraries**: Internal shared components and utilities
+
+## Admin Features
+
+### User Management
+
+- View all users with pagination and search
+- Create, update, and delete user accounts
+- Manage user roles and permissions
+- Reset user passwords securely
+
+### Financial Management
+
+- Monitor all financial transactions
+- Manage user wallet balances
+- Process withdrawal requests
+- Generate financial reports
+
+### System Administration
+
+- Activity monitoring and audit logs
+- Manager permission management
+- Coffee gift management
+- Membership subscription oversight
+
+## Deployment
+
+### Cloudflare Workers (Recommended)
+
+```bash
+bun run deploy
+```
+
+### Traditional Vercel Deployment
+
+The app can also be deployed to Vercel with standard Next.js deployment.
+
+## Development Guidelines
+
+This project follows strict code standards enforced by Ultracite:
+
+- **Type Safety**: Full TypeScript coverage with strict mode
+- **Code Style**: Automatic formatting and linting
+- **Component Patterns**: React 19+ patterns with Server Components
+- **Error Handling**: Comprehensive error boundaries and validation
+- **Performance**: Optimized for runtime performance and bundle size
+
+For detailed development guidelines, see `AGENTS.md`.
